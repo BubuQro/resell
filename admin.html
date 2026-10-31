@@ -38,6 +38,37 @@
             height: 60px;
             object-fit: cover;
             border-radius: 8px;
+            display: block;
+            border: 1px solid rgba(0,0,0,0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .admin-thumbnail-link {
+            display: inline-block;
+            text-decoration: none;
+        }
+        .admin-thumbnail-link:hover .admin-thumbnail {
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .admin-product-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: color 0.15s ease;
+        }
+        .admin-product-link:hover .product-link-title {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+        .product-asin-tag {
+            color: #2563eb;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .admin-product-link:hover .product-asin-tag {
+            color: #1d4ed8;
+            text-decoration: underline;
         }
         .status-badge {
             display: inline-block;
@@ -73,9 +104,15 @@
 </head>
 <body>
     <header>
-        <div class="container">
-            <h1>Panel de Administración</h1>
-            <p>Gestiona precios y marca productos como vendidos.</p>
+        <div class="container header-flex" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h1>Panel de Administración</h1>
+                <p>Gestiona precios y marca productos como vendidos.</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <a href="generador.html" class="action-btn" style="background: #6366f1; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 8px;">✨ Generador de Posts</a>
+                <a href="index.html" class="action-btn" style="background: rgba(255,255,255,0.15); color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 8px;">🛍️ Ver Tienda</a>
+            </div>
         </div>
     </header>
 
@@ -111,6 +148,6 @@
         </div>
     </main>
 
-    <script src="js/admin.js?v=10"></script>
+    <script src="js/admin.js?v=11"></script>
 </body>
 </html>

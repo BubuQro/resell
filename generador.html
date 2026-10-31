@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BubuStore Studio - Generador de Publicaciones</title>
+    
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-body: #0b0f19;
+            --bg-surface: #111827;
+            --bg-card: #182235;
+            --bg-card-hover: #1f2d45;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-focus: #6366f1;
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-blue: #38bdf8;
+            --fb-blue: #1877f2;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+            
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+            --shadow-glow: 0 0 25px rgba(99, 102, 241, 0.25);
+            
+            --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80vw;
+            height: 500px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.05) 50%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Header Navigation */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+        }
+
+        .header-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #ffffff 60%, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+            display: inline-block;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .nav-btn.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border-color: rgba(99, 102, 241, 0.35);
+        }
+
+        /* Control & Filter Bar */
+        .controls-section {
+            position: relative;
+            z-index: 10;
+            max-width: 1000px;
+            margin: 20px auto 0;
+            padding: 0 20px;
+            width: 100%;
+        }
+
+        .control-bar {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 14px 20px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: var(--transition);
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-main);
+            border-color: var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-fb {
+            background: #1877f2;
+            color: white;
+            border-color: transparent;
+        }
+
+        .btn-fb:hover {
+            background: #166fe5;
+        }
+
+        .btn-nav-arrow {
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            border-radius: var(--radius-md);
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            pointer-events: none;
+        }
+
+        .input-text {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 14px 10px 40px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-text:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: #1c273c;
+        }
+
+        .select-product {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            flex: 1.5;
+            min-width: 220px;
+            transition: var(--transition);
+        }
+
+        .select-product:focus {
+            border-color: var(--border-focus);
+        }
+
+        .product-counter {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        /* Centered Workspace */
+        main {
+            position: relative;
+            z-index: 10;
+            max-width: 880px;
+            margin: 20px auto 40px;
+            padding: 0 20px;
+            width: 100%;
+            flex: 1;
+        }
+
+        .panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .panel-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Mode Selector Tabs */
+        .tab-group {
+            display: flex;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            gap: 4px;
+        }
+
+        .tab-btn {
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-muted);
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Product Quick Summary Card */
+        .product-summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .summary-thumb {
+            width: 76px;
+            height: 76px;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .summary-details {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .summary-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .summary-tags {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tag-folio {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .tag-price {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-size: 0.85rem;
+        }
+
+        .tag-amazon {
+            background: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+            font-size: 0.75rem;
+        }
+
+        .tag-saving {
+            background: rgba(217, 70, 239, 0.15);
+            color: #f472b6;
+            font-size: 0.75rem;
+        }
+
+        /* SECCIÓN DE PUBLICACIÓN EN 1 PASO */
+        .single-action-box {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .publish-buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 680px) {
+            .publish-buttons-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn-publish-action {
+            width: 100%;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 14px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+            text-align: left;
+        }
+
+        .btn-facebook {
+            background: linear-gradient(135deg, #1877f2 0%, #0d5ec4 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 18px rgba(24, 119, 242, 0.4);
+        }
+
+        .btn-facebook:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(24, 119, 242, 0.55);
+            background: linear-gradient(135deg, #1a7ff8 0%, #1066d4 100%);
+        }
+
+        .btn-instagram {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 18px rgba(220, 39, 67, 0.35);
+        }
+
+        .btn-instagram:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(220, 39, 67, 0.5);
+            filter: brightness(1.05);
+        }
+
+        .btn-publish-icon {
+            font-size: 1.6rem;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .btn-publish-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .btn-publish-title {
+            font-size: 0.98rem;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+
+        .btn-publish-desc {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .single-action-subrow {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        @media (max-width: 640px) {
+            .single-action-subrow {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Facebook / Instagram Post Mockup Card */
+        .fb-post-mockup {
+            background: #182235;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fb-post-header {
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .fb-author-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .fb-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .fb-author-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fb-badge-verified {
+            color: #38bdf8;
+            font-size: 0.85rem;
+        }
+
+        .fb-post-time {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .fb-post-copy-text {
+            padding: 16px;
+            font-size: 0.94rem;
+            line-height: 1.6;
+            color: #f1f5f9;
+            white-space: pre-wrap;
+            max-height: 280px;
+            overflow-y: auto;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        /* Post Attached Image Container */
+        .fb-media-container {
+            position: relative;
+            background: #0f172a;
+            width: 100%;
+            min-height: 280px;
+            max-height: 440px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .fb-media-img {
+            width: 100%;
+            height: 400px;
+            object-fit: contain;
+            background: #0a0e17;
+            transition: opacity 0.2s ease;
+        }
+
+        .fb-media-badge {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #f8fafc;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Photo selector carousel strip */
+        .photo-picker-strip {
+            display: flex;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(15, 23, 42, 0.7);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        .photo-picker-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            margin-right: 6px;
+        }
+
+        .photo-thumb-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-sm);
+            border: 2px solid transparent;
+            cursor: pointer;
+            overflow: hidden;
+            background: #0b0f19;
+            flex-shrink: 0;
+            padding: 0;
+            transition: var(--transition);
+        }
+
+        .photo-thumb-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-thumb-btn.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+            transform: scale(1.05);
+        }
+
+        /* Post Editor Elements */
+        .hook-selector-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .hook-select {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.15);
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .post-textarea-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .post-textarea {
+            width: 100%;
+            height: 380px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            color: #f1f5f9;
+            padding: 16px;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 0.94rem;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+            transition: var(--transition);
+            white-space: pre-wrap;
+        }
+
+        .post-textarea:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: #192336;
+        }
+
+        .textarea-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            pointer-events: auto;
+            animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .toast.warning {
+            border-left: 4px solid var(--accent-amber);
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-color);
+            padding: 24px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            background: var(--bg-surface);
+            margin-top: auto;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        footer a:hover {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="header-content">
+            <div class="brand-group">
+                <div class="brand-badge">✨</div>
+                <div>
+                    <h1 class="brand-title">BubuStore Studio</h1>
+                    <div class="brand-subtitle">
+                        <span class="live-dot"></span>
+                        <span id="catalog-status">Cargando inventario...</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="nav-links">
+                <a href="index.html" class="nav-btn">
+                    <span>🛍️</span>
+                    <span>Ver Catálogo</span>
+                </a>
+                <a href="admin.html" class="nav-btn">
+                    <span>⚙️</span>
+                    <span>Admin</span>
+                </a>
+                <a href="generador.html" class="nav-btn active">
+                    <span>✨</span>
+                    <span>Generador de Posts</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Controls / Product Selector Bar -->
+    <section class="controls-section">
+        <div class="control-bar">
+            <!-- Random Product Button -->
+            <button id="btn-random" class="btn btn-primary" title="Seleccionar producto aleatorio (Atajo: R)">
+                <span>🎲</span>
+                <span>Producto Aleatorio</span>
+            </button>
+
+            <!-- Navigation Buttons -->
+            <button id="btn-prev" class="btn btn-secondary btn-nav-arrow" title="Producto Anterior (Atajo: Flecha Izq)">◀</button>
+            <button id="btn-next" class="btn btn-secondary btn-nav-arrow" title="Siguiente Producto (Atajo: Flecha Der)">▶</button>
+
+            <!-- Search Input -->
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" class="input-text" placeholder="Buscar por título, folio o ASIN...">
+            </div>
+
+            <!-- Product Dropdown -->
+            <select id="product-select" class="select-product">
+                <option value="">Selecciona un producto disponible...</option>
+            </select>
+
+            <!-- Counter Badge -->
+            <div id="product-counter" class="product-counter">0 disponibles</div>
+        </div>
+    </section>
+
+    <!-- Centered Studio Workspace -->
+    <main>
+        <div class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title">
+                    <span>📱</span>
+                    <span>Publicación Facebook & Instagram</span>
+                </h2>
+                
+                <!-- View Toggle Tabs -->
+                <div class="tab-group">
+                    <button id="tab-btn-preview" class="tab-btn active">
+                        <span>👁️</span>
+                        <span>Vista Previa con Foto</span>
+                    </button>
+                    <button id="tab-btn-edit" class="tab-btn">
+                        <span>✏️</span>
+                        <span>Editar Copy</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product Summary Card -->
+            <div class="product-summary-card">
+                <img id="summary-img" class="summary-thumb" src="" alt="Producto" onerror="this.src='https://via.placeholder.com/150?text=BubuStore';">
+                <div class="summary-details">
+                    <h3 id="summary-title" class="summary-title">Cargando producto...</h3>
+                    <div class="summary-tags">
+                        <span id="summary-folio" class="tag tag-folio">🏷️ Folio: --</span>
+                        <span id="summary-price" class="tag tag-price">💰 $--</span>
+                        <span id="summary-amazon" class="tag tag-amazon">Amazon: $--</span>
+                        <span id="summary-saving" class="tag tag-saving">Ahorras: $--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls for Hook & Image inclusion -->
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="hook-selector-row">
+                    <select id="hook-select" class="hook-select">
+                        <option value="✨ ¡Hoy te recomendamos este producto!">✨ ¡Hoy te recomendamos este producto!</option>
+                        <option value="🔥 ¡Gran oportunidad en nuestro catálogo!">🔥 ¡Gran oportunidad en nuestro catálogo!</option>
+                        <option value="⭐ ¡Descubre este artículo destacado!">⭐ ¡Descubre este artículo destacado!</option>
+                        <option value="✨ ¡Calidad y excelente precio en BubuStore!">✨ ¡Calidad y excelente precio en BubuStore!</option>
+                        <option value="🛍️ ¡No te quedes sin el tuyo!">🛍️ ¡No te quedes sin el tuyo!</option>
+                        <option value="🏷️ ¡Liquidación exclusiva BubuStore!">🏷️ ¡Liquidación exclusiva BubuStore!</option>
+                        <option value="⚡ ¡Stock súper limitado para entrega inmediata!">⚡ ¡Stock súper limitado para entrega inmediata!</option>
+                    </select>
+                    <button id="btn-shuffle-hook" class="btn btn-secondary" title="Cambiar gancho aleatoriamente">🎲</button>
+                </div>
+
+                <!-- Toggle: Include Direct Image Link inside copy text -->
+                <div class="toggle-row">
+                    <span>📸 Incluir enlace público de la foto en el texto del copy</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-photo-link" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- ACCIÓN EN UN SOLO PASO -->
+            <div class="single-action-box">
+                <div class="publish-buttons-grid">
+                    <!-- Botón 1 Paso Facebook -->
+                    <button id="btn-publish-facebook" class="btn-publish-action btn-facebook" title="Copia el post completo y abre Facebook en 1 solo paso">
+                        <span class="btn-publish-icon">🚀</span>
+                        <div class="btn-publish-text">
+                            <span class="btn-publish-title">Publicar en Facebook (1 Paso)</span>
+                            <span class="btn-publish-desc">Copia copy + foto y abre Facebook listo para pegar</span>
+                        </div>
+                    </button>
+
+                    <!-- Botón 1 Paso Instagram -->
+                    <button id="btn-publish-instagram" class="btn-publish-action btn-instagram" title="Copia el copy, descarga la foto y abre Instagram en 1 solo paso">
+                        <span class="btn-publish-icon">📸</span>
+                        <div class="btn-publish-text">
+                            <span class="btn-publish-title">Publicar en Instagram (1 Paso)</span>
+                            <span class="btn-publish-desc">Copia copy, foto lista y abre Instagram</span>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Acciones secundarias limpias -->
+                <div class="single-action-subrow">
+                    <button id="btn-copy-only-text" class="btn btn-secondary" style="padding: 10px 14px; font-size: 0.85rem;">
+                        <span>📋</span>
+                        <span>Copiar Solo Texto</span>
+                    </button>
+                    <button id="btn-copy-only-photo" class="btn btn-secondary" style="padding: 10px 14px; font-size: 0.85rem;">
+                        <span>🖼️</span>
+                        <span>Copiar Solo Foto</span>
+                    </button>
+                    <button id="btn-download-photo" class="btn btn-secondary" style="padding: 10px 14px; font-size: 0.85rem;">
+                        <span>💾</span>
+                        <span>Descargar Foto</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VISTA 1: Facebook / Instagram Mockup Preview con Imagen Integrada -->
+            <div id="view-post-preview" class="fb-post-mockup">
+                <div class="fb-post-header">
+                    <div class="fb-author-info">
+                        <div class="fb-avatar">✨</div>
+                        <div>
+                            <div class="fb-author-name">
+                                <span>BubuStore Remates</span>
+                                <span class="fb-badge-verified">✓</span>
+                            </div>
+                            <div class="fb-post-time">Hace un momento · 🌐 Público</div>
+                        </div>
+                    </div>
+                    <span style="color: var(--text-dim); font-size: 1.2rem;">•••</span>
+                </div>
+
+                <!-- Copy Text Container -->
+                <div id="fb-copy-display" class="fb-post-copy-text"></div>
+
+                <!-- Attached Product Image in Post -->
+                <div class="fb-media-container">
+                    <img id="fb-post-image" class="fb-media-img" src="" alt="Foto de la publicación" onerror="this.src='https://via.placeholder.com/600x400?text=Foto+del+Producto';">
+                    <div class="fb-media-badge">
+                        <span>📸 Foto <span id="current-photo-num-badge">01</span> seleccionada</span>
+                    </div>
+                </div>
+
+                <!-- Photo selector thumbnail strip -->
+                <div class="photo-picker-strip">
+                    <span class="photo-picker-label">Cambiar foto:</span>
+                    <div id="photo-picker-container" style="display: flex; gap: 8px;"></div>
+                </div>
+            </div>
+
+            <!-- VISTA 2: Raw Post Text Editor -->
+            <div id="view-post-edit" class="post-textarea-wrapper" style="display: none;">
+                <textarea id="post-textarea" class="post-textarea" spellcheck="false" placeholder="El texto formateado aparecerá aquí..."></textarea>
+                <div class="textarea-footer">
+                    <span id="char-count">0 caracteres • 0 palabras</span>
+                    <span>Edita libremente el copy</span>
+                </div>
+            </div>
+
+            <!-- Auxiliary links -->
+            <div style="display: flex; justify-content: flex-end;">
+                <a id="btn-view-store" href="#" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                    <span>🔗 Ver ficha en catálogo BubuStore</span>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Footer -->
+    <footer>
+        <p>BubuStore Studio © 2026 • Catálogo en línea: <a href="https://jaxohua.github.io/bubustore/" target="_blank">jaxohua.github.io/bubustore</a></p>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        (function() {
+            'use strict';
+
+            // Constants & URLs
+            const STORE_BASE_URL = 'https://jaxohua.github.io/bubustore/';
+            const LOCAL_PRODUCTOS_URL = 'data/productos.json';
+            const LOCAL_ESTADO_URL = 'data/estado_productos.json';
+            const REMOTE_PRODUCTOS_URL = 'https://jaxohua.github.io/bubustore/data/productos.json';
+            const REMOTE_ESTADO_URL = 'https://jaxohua.github.io/bubustore/data/estado_productos.json';
+
+            // App State
+            let catalogProducts = [];
+            let catalogState = {};
+            let availableProducts = [];
+            let currentIndex = 0;
+            let currentProduct = null;
+            let currentPostData = null;
+            let selectedPhotoNum = '01';
+            let loadedProductImage = null;
+
+            // DOM Elements
+            const catalogStatusEl = document.getElementById('catalog-status');
+            const productCounterEl = document.getElementById('product-counter');
+            const btnRandom = document.getElementById('btn-random');
+            const btnPrev = document.getElementById('btn-prev');
+            const btnNext = document.getElementById('btn-next');
+            const searchInput = document.getElementById('search-input');
+            const productSelect = document.getElementById('product-select');
+            
+            const summaryImg = document.getElementById('summary-img');
+            const summaryTitle = document.getElementById('summary-title');
+            const summaryFolio = document.getElementById('summary-folio');
+            const summaryPrice = document.getElementById('summary-price');
+            const summaryAmazon = document.getElementById('summary-amazon');
+            const summarySaving = document.getElementById('summary-saving');
+
+            const tabBtnPreview = document.getElementById('tab-btn-preview');
+            const tabBtnEdit = document.getElementById('tab-btn-edit');
+            const viewPostPreview = document.getElementById('view-post-preview');
+            const viewPostEdit = document.getElementById('view-post-edit');
+            const fbCopyDisplay = document.getElementById('fb-copy-display');
+            const fbPostImage = document.getElementById('fb-post-image');
+            const currentPhotoNumBadge = document.getElementById('current-photo-num-badge');
+            const photoPickerContainer = document.getElementById('photo-picker-container');
+
+            const hookSelect = document.getElementById('hook-select');
+            const btnShuffleHook = document.getElementById('btn-shuffle-hook');
+            const togglePhotoLink = document.getElementById('toggle-photo-link');
+            const postTextarea = document.getElementById('post-textarea');
+            const charCountEl = document.getElementById('char-count');
+            
+            // Single Step Action Elements
+            const btnPublishFacebook = document.getElementById('btn-publish-facebook');
+            const btnPublishInstagram = document.getElementById('btn-publish-instagram');
+            const btnCopyOnlyText = document.getElementById('btn-copy-only-text');
+            const btnCopyOnlyPhoto = document.getElementById('btn-copy-only-photo');
+            const btnDownloadPhoto = document.getElementById('btn-download-photo');
+
+            const btnViewStore = document.getElementById('btn-view-store');
+            const toastContainer = document.getElementById('toast-container');
+
+            // ── View Toggle Tabs ──────────────────────────────────────────────
+            tabBtnPreview.addEventListener('click', () => {
+                tabBtnPreview.classList.add('active');
+                tabBtnEdit.classList.remove('active');
+                viewPostPreview.style.display = 'flex';
+                viewPostEdit.style.display = 'none';
+            });
+
+            tabBtnEdit.addEventListener('click', () => {
+                tabBtnEdit.classList.add('active');
+                tabBtnPreview.classList.remove('active');
+                viewPostEdit.style.display = 'flex';
+                viewPostPreview.style.display = 'none';
+                postTextarea.focus();
+            });
+
+            // ── Toast Helper ──────────────────────────────────────────────────
+            function showToast(message, type = 'success', duration = 3500) {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                let icon = '✅';
+                if (type === 'info') icon = 'ℹ️';
+                if (type === 'warning') icon = '⚠️';
+
+                toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+                toastContainer.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(10px) scale(0.95)';
+                    toast.style.transition = 'all 0.25s ease';
+                    setTimeout(() => toast.remove(), 250);
+                }, duration);
+            }
+
+            // ── Clean Sentence Helper ─────────────────────────────────────────
+            function cleanSentence(text) {
+                if (!text) return '';
+                text = text.trim();
+                text = text.replace(/^[【\[\s*•\-\*]+/, '');
+                text = text.replace(/[】\]]\s*:?/g, ': ');
+                text = text.replace(/\s+/g, ' ').trim();
+                
+                const sentences = text.split(/(?<=[.!?])\s+/);
+                let first = sentences[0] ? sentences[0].trim() : '';
+                if (first.length < 25 && sentences.length > 1) {
+                    first = (first + ' ' + sentences[1]).trim();
+                }
+                if (first.length > 160) {
+                    const cutoff = first.substring(0, 157);
+                    const lastSpace = cutoff.lastIndexOf(' ');
+                    first = (lastSpace !== -1 ? cutoff.substring(0, lastSpace) : cutoff) + '...';
+                }
+                return first.trim();
+            }
+
+            // ── Extract Benefits & Specs ──────────────────────────────────────
+            function extractBenefitsAndSpecs(product) {
+                const desc = product.descripcion || '';
+                const parts = desc.split('|').map(p => p.trim()).filter(Boolean);
+
+                const specKeywords = [
+                    'medid', 'dimens', 'tamañ', 'cm', 'mm', 'metro', 'pulgad', 'diámetro',
+                    'material', 'fabricad', 'acero', 'aluminio', 'plástic', 'vidrio', 'poliéster', 'cerámic', 'madera', 'tela',
+                    'incluye', 'paquete', 'contenido', 'piezas', 'unidades', 'kit', 'set', 'recibirás',
+                    'capacidad', 'litro', 'ml', 'peso', 'kg', 'gram', ' g', 'oz',
+                    'potencia', 'watt', 'volt', 'batería', 'pila', 'recargable', 'motor',
+                    'porción', 'porciones', 'ingrediente', 'fórmula', 'ajuste', 'compatible'
+                ];
+
+                const beneficios = [];
+                const specs = [];
+
+                for (const pt of parts) {
+                    const cleaned = cleanSentence(pt);
+                    if (!cleaned) continue;
+                    const ptLower = pt.toLowerCase();
+                    const isSpec = specKeywords.some(kw => ptLower.includes(kw));
+
+                    if (isSpec && specs.length < 3) {
+                        specs.push(cleaned);
+                    } else if (!isSpec && beneficios.length < 3) {
+                        beneficios.push(cleaned);
+                    }
+                }
+
+                if (specs.length === 0 && beneficios.length > 1) {
+                    specs.push(beneficios.pop());
+                } else if (beneficios.length === 0 && specs.length > 1) {
+                    beneficios.push(specs.shift());
+                }
+
+                if (beneficios.length === 0) {
+                    beneficios.push("Excelente calidad y durabilidad comprobada.", "Diseño práctico y funcional para el uso diario.");
+                }
+                if (specs.length === 0) {
+                    specs.push("Consultar detalles específicos en la ficha de la tienda.");
+                }
+
+                return {
+                    beneficios: beneficios.slice(0, 3),
+                    specs: specs.slice(0, 3)
+                };
+            }
+
+            // ── Price Formatter Helper ────────────────────────────────────────
+            function parseAndFormatPrice(val) {
+                if (val === undefined || val === null || val === '') return null;
+                const num = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+                if (isNaN(num)) return null;
+                return Math.round(num);
+            }
+
+            // ── Generate Post Data (Includes Public Image Link) ───────────────
+            function generatePostData(product, estado, forcedHook = null) {
+                const hooks = [
+                    "✨ ¡Hoy te recomendamos este producto!",
+                    "🔥 ¡Gran oportunidad en nuestro catálogo!",
+                    "⭐ ¡Descubre este artículo destacado!",
+                    "✨ ¡Calidad y excelente precio en BubuStore!",
+                    "🛍️ ¡No te quedes sin el tuyo!",
+                    "🏷️ ¡Liquidación exclusiva BubuStore!",
+                    "⚡ ¡Stock súper limitado para entrega inmediata!"
+                ];
+                const gancho = forcedHook || hooks[Math.floor(Math.random() * hooks.length)];
+                const titulo = (product.titulo || 'Producto sin nombre').trim();
+                const productId = product.id || '';
+
+                // Folio
+                const folio = estado && estado.folio ? String(estado.folio).trim() : '';
+                const folioText = folio ? `🏷️ Folio: #${folio}` : '';
+
+                // Precios
+                let priceFormatted = 'Consultar por mensaje';
+                let rawBubuPrice = null;
+                if (estado && estado.precio) {
+                    rawBubuPrice = parseAndFormatPrice(estado.precio);
+                    if (rawBubuPrice !== null) {
+                        priceFormatted = `$${rawBubuPrice.toLocaleString('en-US')} MXN`;
+                    }
+                }
+
+                let rawAmazonPrice = null;
+                let amazonPriceFormatted = '';
+                if (estado && estado.amazon_precio) {
+                    rawAmazonPrice = parseAndFormatPrice(estado.amazon_precio);
+                    if (rawAmazonPrice !== null) {
+                        amazonPriceFormatted = `$${rawAmazonPrice.toLocaleString('en-US')} MXN`;
+                    }
+                }
+
+                // Cálculo de ahorro
+                let savingText = '';
+                if (rawBubuPrice && rawAmazonPrice && rawAmazonPrice > rawBubuPrice) {
+                    const saving = rawAmazonPrice - rawBubuPrice;
+                    const percent = Math.round((saving / rawAmazonPrice) * 100);
+                    savingText = `(En Amazon: ${amazonPriceFormatted} - ¡Ahorras $${saving.toLocaleString('en-US')} [${percent}% OFF]!)`;
+                } else if (rawAmazonPrice) {
+                    savingText = `(Precio ref. Amazon: ${amazonPriceFormatted})`;
+                }
+
+                // Beneficios y Especificaciones
+                const { beneficios, specs } = extractBenefitsAndSpecs(product);
+                const beneficiosStr = beneficios.map(b => `✅ ${b}`).join('\n');
+                const specsStr = specs.map(s => `🔹 ${s}`).join('\n');
+
+                // Enlace directo a la tienda
+                let urlLine = '';
+                let directUrl = STORE_BASE_URL;
+                if (productId) {
+                    directUrl = `${STORE_BASE_URL}?id=${productId}`;
+                    urlLine = `🔗 Ver ficha y disponibilidad en tienda:\n${directUrl}`;
+                } else {
+                    urlLine = `🔗 Ver en catálogo general:\n${STORE_BASE_URL}`;
+                }
+
+                // Enlace público directo a la fotografía del producto
+                const publicImageUrl = `${STORE_BASE_URL}images/${productId}_${selectedPhotoNum}.jpg`;
+                const includePhoto = togglePhotoLink ? togglePhotoLink.checked : true;
+                const photoLine = includePhoto ? `📸 Foto directa del producto:\n${publicImageUrl}` : '';
+
+                // Hashtags
+                const words = titulo.match(/[a-zA-ZáéíóúÁÉÍÓÚñÑ]{5,}/g) || [];
+                const hashtags = ['#BubuStore', '#Ofertas', '#Remates'];
+                if (words.length > 0) {
+                    const sampled = words.sort(() => 0.5 - Math.random()).slice(0, 3);
+                    sampled.forEach(w => hashtags.push(`#${w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()}`));
+                }
+                const hashtagsStr = hashtags.join(' ');
+
+                // Armar bloques de texto para la publicación
+                const priceLine = savingText ? `💰 Precio BubuStore: ${priceFormatted} ${savingText}` : `💰 Precio: ${priceFormatted}`;
+                const bloques = [
+                    `${gancho}\n${titulo}`,
+                    `${folioText ? folioText + '\n' : ''}${priceLine}`.trim(),
+                    `🌟 Beneficios destacados:\n${beneficiosStr}`,
+                    `📋 Especificaciones técnicas:\n${specsStr}`,
+                    urlLine,
+                    photoLine,
+                    `📩 Envíanos mensaje para coordinar tu compra o entrega inmediata.`,
+                    hashtagsStr
+                ];
+
+                const fullText = bloques.filter(Boolean).join('\n\n');
+
+                return {
+                    text: fullText,
+                    gancho,
+                    titulo,
+                    folio,
+                    price: priceFormatted,
+                    rawBubuPrice,
+                    rawAmazonPrice,
+                    amazonPriceFormatted,
+                    savingText,
+                    beneficios,
+                    specs,
+                    url: directUrl,
+                    publicImageUrl,
+                    hashtags: hashtagsStr,
+                    productId
+                };
+            }
+
+            // ── Load Product Image into Memory ────────────────────────────────
+            function loadProductImage(photoNum = '01') {
+                if (!currentProduct) return;
+                selectedPhotoNum = photoNum;
+                currentPhotoNumBadge.textContent = photoNum;
+
+                const productId = currentProduct.id;
+                const primaryUrl = `images/${productId}_${photoNum}.jpg`;
+                const fallbackUrl = `https://jaxohua.github.io/bubustore/images/${productId}_${photoNum}.jpg`;
+
+                // Update Facebook Post preview image
+                fbPostImage.src = primaryUrl;
+
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+
+                img.onload = () => {
+                    loadedProductImage = img;
+                };
+
+                img.onerror = () => {
+                    if (img.src !== fallbackUrl) {
+                        img.src = fallbackUrl;
+                        fbPostImage.src = fallbackUrl;
+                    } else {
+                        loadedProductImage = null;
+                    }
+                };
+
+                img.src = primaryUrl;
+
+                // Update thumbnails active state
+                document.querySelectorAll('.photo-thumb-btn').forEach(btn => {
+                    if (btn.dataset.num === photoNum) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+
+                // Regenerate post data if photo URL inclusion is toggled
+                if (currentProduct) {
+                    const estado = catalogState[currentProduct.id] || {};
+                    currentPostData = generatePostData(currentProduct, estado, hookSelect.value);
+                    postTextarea.value = currentPostData.text;
+                    fbCopyDisplay.textContent = currentPostData.text;
+                    updateCharCount();
+                }
+            }
+
+            // ── Render Photo Selector Strip ───────────────────────────────────
+            function renderPhotoPickerStrip() {
+                photoPickerContainer.innerHTML = '';
+                if (!currentProduct) return;
+
+                const photos = ['01', '02', '03', '04', '05'];
+                photos.forEach(num => {
+                    const btn = document.createElement('button');
+                    btn.className = `photo-thumb-btn ${num === selectedPhotoNum ? 'active' : ''}`;
+                    btn.dataset.num = num;
+                    btn.title = `Seleccionar Foto ${num}`;
+
+                    const img = document.createElement('img');
+                    img.src = `images/${currentProduct.id}_${num}.jpg`;
+                    img.onerror = () => {
+                        btn.remove();
+                    };
+
+                    btn.appendChild(img);
+                    btn.addEventListener('click', () => {
+                        selectedPhotoNum = num;
+                        loadProductImage(num);
+                        showToast(`📸 Foto ${num} seleccionada para la publicación`, 'info', 1500);
+                    });
+
+                    photoPickerContainer.appendChild(btn);
+                });
+            }
+
+            // ── Display Product ───────────────────────────────────────────────
+            function displayProduct(product) {
+                if (!product) return;
+                currentProduct = product;
+                const estado = catalogState[product.id] || {};
+
+                // Generate post content
+                currentPostData = generatePostData(product, estado, hookSelect.value);
+
+                // Update UI Summary Card
+                summaryTitle.textContent = currentPostData.titulo;
+                summaryFolio.textContent = currentPostData.folio ? `🏷️ Folio: #${currentPostData.folio}` : '🏷️ Folio: --';
+                summaryPrice.textContent = `💰 ${currentPostData.price}`;
+                
+                if (currentPostData.amazonPriceFormatted) {
+                    summaryAmazon.style.display = 'inline-flex';
+                    summaryAmazon.textContent = `Amazon: ${currentPostData.amazonPriceFormatted}`;
+                } else {
+                    summaryAmazon.style.display = 'none';
+                }
+
+                if (currentPostData.rawBubuPrice && currentPostData.rawAmazonPrice && currentPostData.rawAmazonPrice > currentPostData.rawBubuPrice) {
+                    const saving = currentPostData.rawAmazonPrice - currentPostData.rawBubuPrice;
+                    summarySaving.style.display = 'inline-flex';
+                    summarySaving.textContent = `Ahorras $${saving.toLocaleString('en-US')}`;
+                } else {
+                    summarySaving.style.display = 'none';
+                }
+
+                // Update Thumbnail
+                summaryImg.src = `images/${product.id}_01.jpg`;
+
+                // Update Textarea and Facebook Mockup display
+                postTextarea.value = currentPostData.text;
+                fbCopyDisplay.textContent = currentPostData.text;
+                updateCharCount();
+
+                // Update Direct Link Button
+                btnViewStore.href = currentPostData.url;
+
+                // Sync Dropdown
+                productSelect.value = product.id;
+
+                // Update Counter
+                productCounterEl.textContent = `Producto ${currentIndex + 1} de ${availableProducts.length}`;
+
+                // Setup photo strip and load image
+                selectedPhotoNum = '01';
+                renderPhotoPickerStrip();
+                loadProductImage('01');
+            }
+
+            // ── Textarea Character Count & Sync ───────────────────────────────
+            function updateCharCount() {
+                const text = postTextarea.value || '';
+                const chars = text.length;
+                const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+                charCountEl.textContent = `${chars} caracteres • ${words} palabras`;
+            }
+
+            postTextarea.addEventListener('input', () => {
+                fbCopyDisplay.textContent = postTextarea.value;
+                updateCharCount();
+            });
+
+            // ── Hook Selection Change ─────────────────────────────────────────
+            hookSelect.addEventListener('change', () => {
+                if (currentProduct) {
+                    const estado = catalogState[currentProduct.id] || {};
+                    currentPostData = generatePostData(currentProduct, estado, hookSelect.value);
+                    postTextarea.value = currentPostData.text;
+                    fbCopyDisplay.textContent = currentPostData.text;
+                    updateCharCount();
+                }
+            });
+
+            btnShuffleHook.addEventListener('click', () => {
+                const options = Array.from(hookSelect.options);
+                const randomOpt = options[Math.floor(Math.random() * options.length)];
+                hookSelect.value = randomOpt.value;
+                hookSelect.dispatchEvent(new Event('change'));
+                showToast("✨ Gancho actualizado", "info", 1500);
+            });
+
+            // Toggle photo link inside copy text
+            togglePhotoLink.addEventListener('change', () => {
+                if (currentProduct) {
+                    const estado = catalogState[currentProduct.id] || {};
+                    currentPostData = generatePostData(currentProduct, estado, hookSelect.value);
+                    postTextarea.value = currentPostData.text;
+                    fbCopyDisplay.textContent = currentPostData.text;
+                    updateCharCount();
+                    showToast(togglePhotoLink.checked ? "📸 Enlace de foto incluido en el copy" : "📸 Enlace de foto quitado del copy", "info", 1500);
+                }
+            });
+
+            // ── Helper: Get Product Image Blob ────────────────────────────────
+            async function getProductPhotoBlob() {
+                return new Promise((resolve, reject) => {
+                    const tempCanvas = document.createElement('canvas');
+                    const img = loadedProductImage;
+
+                    if (!img || !img.complete || img.naturalWidth === 0) {
+                        reject(new Error("La imagen del producto no está cargada aún"));
+                        return;
+                    }
+
+                    tempCanvas.width = img.naturalWidth;
+                    tempCanvas.height = img.naturalHeight;
+                    const ctx = tempCanvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    tempCanvas.toBlob(blob => {
+                        if (blob) resolve(blob);
+                        else reject(new Error("No se pudo procesar la imagen del producto"));
+                    }, 'image/png');
+                });
+            }
+
+            // ── 🚀 PUBLICAR EN FACEBOOK (EN UN SOLO PASO) ──────────────────────
+            btnPublishFacebook.addEventListener('click', async () => {
+                const text = postTextarea.value;
+                if (!text.trim()) {
+                    showToast("No hay texto para publicar", "warning");
+                    return;
+                }
+
+                // 1. En móviles/tablets con Web Share API soportada:
+                if (navigator.share && /mobile|android|iphone|ipad|ipod/i.test(navigator.userAgent)) {
+                    try {
+                        const blob = await getProductPhotoBlob();
+                        const file = new File([blob], `bubustore_${selectedPhotoNum}.png`, { type: 'image/png' });
+                        const shareData = {
+                            title: `${currentPostData.titulo} - BubuStore`,
+                            text: text,
+                            url: currentPostData.url
+                        };
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            shareData.files = [file];
+                        }
+                        await navigator.share(shareData);
+                        showToast("🎉 ¡Publicación compartida con éxito!", "success");
+                        return;
+                    } catch (err) {
+                        if (err.name === 'AbortError') return;
+                    }
+                }
+
+                // 2. En escritorio/web: Abrir Facebook inmediatamente (evita bloqueador de popups)
+                window.open('https://www.facebook.com/', '_blank');
+
+                // Copiar texto completo (incluye enlace con foto pública) al portapapeles
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showToast("🚀 ¡Post copiado! Pégalo en Facebook con Ctrl+V (o clic derecho > Pegar)", "success", 4500);
+                } catch (clipErr) {
+                    postTextarea.select();
+                    document.execCommand('copy');
+                    showToast("🚀 ¡Post copiado! Pégalo en Facebook con Ctrl+V", "success", 4000);
+                }
+            });
+
+            // ── 📸 PUBLICAR EN INSTAGRAM (EN UN SOLO PASO) ─────────────────────
+            btnPublishInstagram.addEventListener('click', async () => {
+                const text = postTextarea.value;
+                if (!text.trim()) {
+                    showToast("No hay texto para publicar", "warning");
+                    return;
+                }
+
+                // 1. En móviles/tablets con Web Share API:
+                if (navigator.share && /mobile|android|iphone|ipad|ipod/i.test(navigator.userAgent)) {
+                    try {
+                        const blob = await getProductPhotoBlob();
+                        const file = new File([blob], `bubustore_${selectedPhotoNum}.png`, { type: 'image/png' });
+                        const shareData = {
+                            title: `${currentPostData.titulo} - BubuStore`,
+                            text: text
+                        };
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            shareData.files = [file];
+                        }
+                        await navigator.share(shareData);
+                        showToast("📸 ¡Publicación compartida con éxito!", "success");
+                        return;
+                    } catch (err) {
+                        if (err.name === 'AbortError') return;
+                    }
+                }
+
+                // 2. En escritorio/web: Abrir Instagram inmediatamente
+                window.open('https://www.instagram.com/', '_blank');
+
+                // Descargar foto automáticamente para tenerla lista en la barra de descargas
+                triggerPhotoDownload();
+
+                // Intentar copiar la imagen al portapapeles si el navegador lo permite
+                try {
+                    const photoBlob = await getProductPhotoBlob();
+                    if (navigator.clipboard && navigator.clipboard.write) {
+                        const item = new ClipboardItem({ 'image/png': photoBlob });
+                        await navigator.clipboard.write([item]);
+                    }
+                } catch (e) {
+                    // Fallback normal, la foto ya está descargada
+                }
+
+                // Copiar texto del copy
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showToast("📸 ¡Foto descargada y copy copiado! Sube la foto y pega el texto en Instagram", "success", 5000);
+                } catch (clipErr) {
+                    postTextarea.select();
+                    document.execCommand('copy');
+                    showToast("📸 ¡Foto lista y copy copiado!", "success", 4500);
+                }
+            });
+
+            // ── Copiar Solo Texto ──────────────────────────────────────────────
+            btnCopyOnlyText.addEventListener('click', async () => {
+                const text = postTextarea.value;
+                if (!text.trim()) {
+                    showToast("No hay texto para copiar", "warning");
+                    return;
+                }
+
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showToast("📋 ¡Texto copiado al portapapeles!", "success");
+                } catch (err) {
+                    postTextarea.select();
+                    document.execCommand('copy');
+                    showToast("📋 ¡Texto copiado!", "success");
+                }
+            });
+
+            // ── Copiar Solo Foto ───────────────────────────────────────────────
+            btnCopyOnlyPhoto.addEventListener('click', async () => {
+                try {
+                    const photoBlob = await getProductPhotoBlob();
+                    if (navigator.clipboard && navigator.clipboard.write) {
+                        const item = new ClipboardItem({ 'image/png': photoBlob });
+                        await navigator.clipboard.write([item]);
+                        showToast(`🖼️ ¡Foto ${selectedPhotoNum} copiada al portapapeles!`, "success");
+                    } else {
+                        triggerPhotoDownload();
+                        showToast("Descargando imagen del producto.", "info");
+                    }
+                } catch (err) {
+                    showToast("Error al copiar imagen: " + err.message, "warning");
+                }
+            });
+
+            // ── Descargar Foto ────────────────────────────────────────────────
+            function triggerPhotoDownload() {
+                if (!currentPostData) return;
+                const link = document.createElement('a');
+                const folio = currentPostData.folio ? `folio_${currentPostData.folio}_` : '';
+                link.download = `bubustore_foto_${selectedPhotoNum}_${folio}${currentPostData.productId}.png`;
+                link.href = fbPostImage.src;
+                link.click();
+            }
+
+            btnDownloadPhoto.addEventListener('click', () => {
+                triggerPhotoDownload();
+                showToast("💾 Descargando foto del producto.", "success");
+            });
+
+            // ── Navigation & Selection Handlers ───────────────────────────────
+            function goToProduct(idx) {
+                if (availableProducts.length === 0) return;
+                if (idx < 0) idx = availableProducts.length - 1;
+                if (idx >= availableProducts.length) idx = 0;
+                currentIndex = idx;
+                displayProduct(availableProducts[currentIndex]);
+            }
+
+            btnRandom.addEventListener('click', () => {
+                if (availableProducts.length === 0) return;
+                const randIdx = Math.floor(Math.random() * availableProducts.length);
+                goToProduct(randIdx);
+                showToast("🎲 Producto aleatorio cargado", "info", 1500);
+            });
+
+            btnPrev.addEventListener('click', () => goToProduct(currentIndex - 1));
+            btnNext.addEventListener('click', () => goToProduct(currentIndex + 1));
+
+            // Keyboard navigation (Left / Right / R)
+            window.addEventListener('keydown', (e) => {
+                if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    goToProduct(currentIndex - 1);
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    goToProduct(currentIndex + 1);
+                } else if (e.key.toLowerCase() === 'r') {
+                    e.preventDefault();
+                    btnRandom.click();
+                }
+            });
+
+            productSelect.addEventListener('change', (e) => {
+                const selectedId = e.target.value;
+                const idx = availableProducts.findIndex(p => p.id === selectedId);
+                if (idx !== -1) {
+                    goToProduct(idx);
+                }
+            });
+
+            // Search filter in dropdown
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                productSelect.innerHTML = '';
+
+                let matched = availableProducts;
+                if (query) {
+                    matched = availableProducts.filter(p => {
+                        const estado = catalogState[p.id] || {};
+                        const folio = estado.folio ? String(estado.folio).toLowerCase() : '';
+                        const id = (p.id || '').toLowerCase();
+                        const titulo = (p.titulo || '').toLowerCase();
+                        return folio.includes(query) || id.includes(query) || titulo.includes(query);
+                    });
+                }
+
+                if (matched.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.textContent = "No se encontraron productos";
+                    opt.disabled = true;
+                    productSelect.appendChild(opt);
+                    return;
+                }
+
+                matched.forEach(p => {
+                    const estado = catalogState[p.id] || {};
+                    const folio = estado.folio ? `[#${estado.folio}] ` : '';
+                    let price = estado.precio ? `$${Math.round(Number(estado.precio))} MXN` : 'Sin precio';
+                    
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${folio}${p.titulo.substring(0, 55)}... (${price})`;
+                    productSelect.appendChild(opt);
+                });
+
+                if (currentProduct && matched.some(p => p.id === currentProduct.id)) {
+                    productSelect.value = currentProduct.id;
+                } else if (matched.length > 0) {
+                    const newIdx = availableProducts.findIndex(p => p.id === matched[0].id);
+                    if (newIdx !== -1) goToProduct(newIdx);
+                }
+            });
+
+            // ── Populate Select Dropdown ──────────────────────────────────────
+            function populateProductSelect() {
+                productSelect.innerHTML = '';
+                availableProducts.forEach((p, idx) => {
+                    const estado = catalogState[p.id] || {};
+                    const folio = estado.folio ? `[#${estado.folio}] ` : '';
+                    let price = estado.precio ? `$${Math.round(Number(estado.precio))} MXN` : 'Sin precio';
+                    
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${folio}${p.titulo.substring(0, 55)}... (${price})`;
+                    productSelect.appendChild(opt);
+                });
+            }
+
+            // ── Data Fetcher with Fallbacks ───────────────────────────────────
+            async function loadCatalogData() {
+                catalogStatusEl.textContent = "Conectando al catálogo...";
+
+                let prods = null;
+                let estado = null;
+
+                try {
+                    const [resProds, resEstado] = await Promise.all([
+                        fetch(LOCAL_PRODUCTOS_URL),
+                        fetch(LOCAL_ESTADO_URL)
+                    ]);
+                    if (resProds.ok && resEstado.ok) {
+                        prods = await resProds.json();
+                        estado = await resEstado.json();
+                    }
+                } catch (localErr) {
+                    console.log("Local fetch fallback:", localErr);
+                }
+
+                if (!prods || !estado) {
+                    try {
+                        const [resProdsRemote, resEstadoRemote] = await Promise.all([
+                            fetch(REMOTE_PRODUCTOS_URL),
+                            fetch(REMOTE_ESTADO_URL)
+                        ]);
+                        if (resProdsRemote.ok && resEstadoRemote.ok) {
+                            prods = await resProdsRemote.json();
+                            estado = await resEstadoRemote.json();
+                        }
+                    } catch (remoteErr) {
+                        console.error("Remote fetch failed:", remoteErr);
+                    }
+                }
+
+                if (!prods || !estado) {
+                    catalogStatusEl.textContent = "⚠️ Error al cargar catálogo";
+                    showToast("No se pudo cargar el catálogo de productos.", "warning", 6000);
+                    return;
+                }
+
+                catalogProducts = Array.isArray(prods) ? prods : (prods.productos || []);
+                catalogState = estado || {};
+
+                availableProducts = catalogProducts.filter(p => {
+                    const st = catalogState[p.id];
+                    return !st || st.vendido !== true;
+                });
+
+                catalogStatusEl.textContent = `Catálogo activo: ${availableProducts.length} disponibles`;
+                populateProductSelect();
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const requestedId = urlParams.get('id');
+
+                let targetIndex = 0;
+                if (requestedId) {
+                    const foundIdx = availableProducts.findIndex(p => p.id === requestedId);
+                    if (foundIdx !== -1) targetIndex = foundIdx;
+                } else if (availableProducts.length > 0) {
+                    targetIndex = Math.floor(Math.random() * availableProducts.length);
+                }
+
+                goToProduct(targetIndex);
+            }
+
+            loadCatalogData();
+
+        })();
+    </script>
+</body>
+</html>

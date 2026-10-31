@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filteredList.forEach(product => {
             const { id, titulo } = product;
             const imageUrl = `images/${id}_01.jpg`;
+            const amazonUrl = product.url || `https://www.amazon.com.mx/dp/${id}`;
             
             const state = stateData[id] || { precio: '', vendido: false, amazon_precio: '' };
             const isSold = state.vendido;
@@ -91,10 +92,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const tr = document.createElement('tr');
             
             tr.innerHTML = `
-                <td><img src="${imageUrl}" alt="img" class="admin-thumbnail" onerror="this.src='https://via.placeholder.com/60'"></td>
-                <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${titulo}">
-                    <strong>${id}</strong><br>
-                    <small>${titulo}</small>
+                <td>
+                    <a href="${amazonUrl}" target="_blank" rel="noopener noreferrer" class="admin-thumbnail-link" title="Ver foto y producto en Amazon">
+                        <img src="${imageUrl}" alt="img" class="admin-thumbnail" onerror="this.src='https://via.placeholder.com/60'">
+                    </a>
+                </td>
+                <td style="max-width:320px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${titulo}">
+                    <a href="${amazonUrl}" target="_blank" rel="noopener noreferrer" class="admin-product-link" title="Abrir ficha en Amazon: ${titulo}">
+                        <span class="product-asin-tag"><strong>${id}</strong> <span style="font-size: 0.75rem;">↗</span></span><br>
+                        <small class="product-link-title">${titulo}</small>
+                    </a>
                 </td>
                 <td>
                     <span class="status-badge ${isSold ? 'status-sold' : 'status-available'}" id="badge-${id}">

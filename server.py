@@ -8,14 +8,13 @@ PORT = 8000
 DATA_FILE = "data/estado_productos.json"
 
 class CustomHandler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        # Prevent caching for our files
+    def end_headers(self):
+        # Prevent caching for dynamic and code files
         if self.path.endswith('.json') or self.path.endswith('.html') or self.path.endswith('.js') or self.path.endswith('.css'):
-            self.send_response(200)
             self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             self.send_header('Pragma', 'no-cache')
             self.send_header('Expires', '0')
-        return super().do_GET()
+        super().end_headers()
 
     def do_POST(self):
         parsed_path = urllib.parse.urlparse(self.path)

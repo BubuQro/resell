@@ -1,20 +1,37 @@
+#!/usr/bin/env python3
+"""
+Scraper de precios de Amazon para el catálogo de BubuStore.
+Permite consultar los precios de referencia vigentes de Amazon México
+y guardarlos automáticamente en data/estado_productos.json.
+"""
+
 import json
 import time
 import random
 import os
+import sys
 import urllib.request
 from urllib.error import HTTPError, URLError
 import re
 
 # Archivos
-PRODUCTOS_FILE = "data/productos.json"
-ESTADO_FILE = "data/estado_productos.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PRODUCTOS_FILE = os.path.join(BASE_DIR, "data", "productos.json")
+ESTADO_FILE = os.path.join(BASE_DIR, "data", "estado_productos.json")
 
-# Cabeceras para simular un navegador real
+# Cabeceras para simular un navegador real en macOS
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
     'Accept-Language': 'es-MX,es;q=0.9,en-US;q=0.8,en;q=0.7',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    'Sec-Ch-Ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+    'Sec-Ch-Ua-Mobile': '?0',
+    'Sec-Ch-Ua-Platform': '"macOS"',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'none',
+    'Sec-Fetch-User': '?1',
+    'Upgrade-Insecure-Requests': '1',
     'Connection': 'keep-alive'
 }
 
@@ -33,85 +50,160 @@ def save_json(filepath, data):
 
 def extract_price(html):
     """
-    Busca patrones comunes de precio en el HTML de Amazon.
+    Busca patrones comunes de precio en el HTML de Amazon México.
     """
-    # Patrón 1: <span class="a-offscreen">$1,234.56</span>
+    # 1. Contenedor de precio oculto estándar: <span class="a-offscreen">$1,234.56</span>
     match = re.search(r'<span class="a-offscreen">([^<]+)</span>', html)
     if match:
-        return match.group(1).strip()
-    
-    # Patrón 2: <span class="a-price-whole">1,234<span class="a-price-decimal">.</span></span>
-    match_whole = re.search(r'<span class="a-price-whole">([^<]+)<', html)
-    match_fraction = re.search(r'<span class="a-price-fraction">([^<]+)<', html)
-    if match_whole and match_fraction:
-        return f"${match_whole.group(1).strip()}{match_fraction.group(1).strip()}"
-    elif match_whole:
-        return f"${match_whole.group(1).strip()}"
-        
+        p = match.group(1).strip()
+        if '$' in p:
+            return p
+
+    # 2. Precio dividido en entero y fracción:
+    match_whole = re.search(r'class="a-price-whole">([^<]+)<', html)
+    match_fraction = re.search(r'class="a-price-fraction">([^<]+)<', html)
+    if match_whole:
+        whole = match_whole.group(1).replace('.', '').strip()
+        fraction = match_fraction.group(1).strip() if match_fraction else "00"
+        return f"${whole}.{fraction}"
+
+    # 3. Precio apex: <span class="apexPriceToPay"><span class="a-offscreen">$...</span></span>
+    match_apex = re.search(r'apexPriceToPay.*?<span class="a-offscreen">([^<]+)</span>', html, re.DOTALL)
+    if match_apex:
+        return match_apex.group(1).strip()
+
     return None
 
+def is_captcha(html):
+    return ('api-services-support@amazon.com' in html or 
+            'Enter the characters you see below' in html or 
+            'Ingresa los caracteres que ves a continuación' in html)
+
 def main():
-    print("Iniciando scraper de Amazon...")
-    
+    print("=" * 60)
+    print("🔍 BubuStore - Consultor de Precios de Amazon México")
+    print("=" * 60)
+
     productos_data = load_json(PRODUCTOS_FILE)
     estado_data = load_json(ESTADO_FILE)
-    
-    # Parsear lista de productos
+
     products_list = []
     if isinstance(productos_data, list):
         products_list = productos_data
     elif isinstance(productos_data, dict) and "productos" in productos_data:
         products_list = productos_data["productos"]
-    else:
-        for k, v in productos_data.items():
-            if isinstance(v, list):
-                products_list = v
-                break
 
-    print(f"Se encontraron {len(products_list)} productos. Procesando...")
+    if not products_list:
+        print("❌ No se encontraron productos en data/productos.json.")
+        return
+
+    # Opciones de filtrado por argumentos
+    args = sys.argv[1:]
+    solo_nuevos = False
+    forzar = "--forzar" in args
+    target_id = None
+    limit = None
+
+    for i, arg in enumerate(args):
+        if arg in ["--nuevos", "-n"]:
+            solo_nuevos = True
+        elif arg.startswith("B0"):
+            target_id = arg
+        elif arg in ["--limit", "-l"] and i + 1 < len(args):
+            try:
+                limit = int(args[i + 1])
+            except ValueError:
+                pass
+
+    # Selección de productos a consultar
+    pendientes = []
     
-    for idx, prod in enumerate(products_list):
-        prod_id = prod.get("id")
-        url = prod.get("url")
-        
-        if not prod_id or not url:
-            continue
-            
-        # Si ya tenemos el precio, podemos saltarlo (opcional, pero ayuda a evitar baneos)
-        # if prod_id in estado_data and estado_data[prod_id].get("amazon_precio"):
-        #     print(f"[{prod_id}] Ya tiene precio, saltando...")
-        #     continue
+    if target_id:
+        # Modo producto específico
+        pendientes = [p for p in products_list if p.get("id") == target_id]
+        print(f"🎯 Modo producto único: {target_id}")
+    elif solo_nuevos:
+        # Los últimos 178 productos (los agregados en la última importación)
+        ultimos_178 = products_list[-178:] if len(products_list) >= 178 else products_list
+        pendientes = [p for p in ultimos_178 if forzar or not estado_data.get(p.get("id"), {}).get("amazon_precio")]
+        print(f"✨ Modo productos nuevos: {len(pendientes)} artículos pendientes de precio.")
+    else:
+        # Por defecto: todos los que falten de precio, ordenados empezando por los más recientes
+        pendientes = [p for p in reversed(products_list) if forzar or not estado_data.get(p.get("id"), {}).get("amazon_precio")]
+        print(f"📋 Modo general: {len(pendientes)} artículos sin precio de Amazon registrado.")
 
-        print(f"[{prod_id}] Consultando URL: {url}...")
+    if limit and limit > 0:
+        pendientes = pendientes[:limit]
+        print(f"⚡ Límite aplicado: procesando los primeros {limit} artículos.")
+
+    if not pendientes:
+        print("✅ ¡Todos los productos seleccionados ya tienen su precio de Amazon registrado!")
+        print("💡 Si deseas forzar una actualización de precios, usa: python3 scraper_amazon.py --forzar")
+        return
+
+    print(f"\nIniciando consulta para {len(pendientes)} productos...")
+    print("Tip: Puedes detenerlo en cualquier momento con Ctrl+C (los precios obtenidos ya habrán quedado guardados).\n")
+
+    exitos = 0
+    no_encontrados = 0
+
+    for idx, prod in enumerate(pendientes, 1):
+        prod_id = prod.get("id")
+        url = prod.get("url") or f"https://www.amazon.com.mx/dp/{prod_id}"
+        titulo = prod.get("titulo", "")[:45]
+
+        print(f"[{idx}/{len(pendientes)}] {prod_id} - {titulo}...")
         
         req = urllib.request.Request(url, headers=HEADERS)
         try:
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=12) as response:
                 html = response.read().decode('utf-8', errors='ignore')
+                
+                if is_captcha(html):
+                    print("  ⚠️ Amazon presentó un Captcha o detección de tráfico.")
+                    print("  Pausando temporalmente por 15 segundos...")
+                    time.sleep(15)
+                    continue
+
                 precio = extract_price(html)
                 
                 if precio:
-                    print(f"  -> Precio encontrado: {precio}")
+                    print(f"  💰 Precio Amazon: {precio}")
                     if prod_id not in estado_data:
                         estado_data[prod_id] = {}
                     estado_data[prod_id]["amazon_precio"] = precio
-                    # Guardar progresivamente
                     save_json(ESTADO_FILE, estado_data)
+                    exitos += 1
                 else:
-                    print(f"  -> No se pudo encontrar el precio en el HTML.")
-        except HTTPError as e:
-            print(f"  -> Error HTTP: {e.code}. Amazon podría estar bloqueando la petición.")
-        except URLError as e:
-            print(f"  -> Error de red: {e.reason}")
-        except Exception as e:
-            print(f"  -> Error inesperado: {str(e)}")
-            
-        # Esperar entre 2 y 5 segundos para no saturar
-        sleep_time = random.uniform(2.0, 5.0)
-        print(f"Esperando {sleep_time:.1f} segundos...\n")
-        time.sleep(sleep_time)
+                    print("  ⚪ No se detectó precio (puede ser producto agotado o sin stock).")
+                    no_encontrados += 1
 
-    print("Proceso finalizado.")
+        except HTTPError as e:
+            if e.code == 404:
+                print(f"  ❌ Error 404: Producto no disponible en Amazon.")
+            elif e.code == 503:
+                print(f"  ⚠️ Error 503: Servicio ocupado. Pausando 10 segundos...")
+                time.sleep(10)
+            else:
+                print(f"  ⚠️ Error HTTP {e.code}.")
+            no_encontrados += 1
+        except URLError as e:
+            print(f"  ⚠️ Error de red: {e.reason}")
+            no_encontrados += 1
+        except Exception as e:
+            print(f"  ⚠️ Error inesperado: {str(e)}")
+            no_encontrados += 1
+
+        # Pausa aleatoria prudente para no saturar Amazon (entre 2.0 y 3.8 seg)
+        if idx < len(pendientes):
+            sleep_time = random.uniform(2.0, 3.8)
+            time.sleep(sleep_time)
+
+    print("\n" + "=" * 60)
+    print("🏁 Consulta de precios finalizada.")
+    print(f"✅ Precios actualizados con éxito: {exitos}")
+    print(f"⚪ No disponibles o agotados: {no_encontrados}")
+    print("=" * 60)
 
 if __name__ == "__main__":
     main()
