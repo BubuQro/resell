@@ -142,7 +142,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!isNaN(precioNum) && precioNum > 0) {
                     const roundedPrice = Math.round(precioNum);
                     price = `$${roundedPrice.toLocaleString('en-US')}`;
-                    priceHtml = `<div class="product-price-container"><span class="product-price-symbol">$</span><span class="product-price">${roundedPrice.toLocaleString('en-US')}</span></div>`;
+                    
+                    let refAmazonHtml = '';
+                    if (stateData[id].amazon_precio) {
+                        refAmazonHtml = `<span class="product-amazon-ref" title="Precio de referencia en Amazon">Amazon: <span class="ref-strike">${stateData[id].amazon_precio}</span></span>`;
+                    }
+
+                    priceHtml = `
+                        <div class="product-price-row">
+                            <div class="product-price-container">
+                                <span class="product-price-symbol">$</span>
+                                <span class="product-price">${roundedPrice.toLocaleString('en-US')}</span>
+                            </div>
+                            ${refAmazonHtml}
+                        </div>
+                    `;
                 }
             }
 
@@ -188,7 +202,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const openModal = (product, price) => {
         const { id, titulo, descripcion, url } = product;
         
-        modalTitle.innerHTML = `${titulo} ${price ? `<span class="modal-price">${price}</span>` : ''}`;
+        let modalPriceHtml = '';
+        if (price) {
+            let refText = '';
+            if (stateData[id] && stateData[id].amazon_precio) {
+                refText = ` <small class="modal-ref-price">(Amazon: <s>${stateData[id].amazon_precio}</s> - 20% OFF)</small>`;
+            }
+            modalPriceHtml = `<span class="modal-price">${price}${refText}</span>`;
+        }
+        
+        modalTitle.innerHTML = `${titulo} ${modalPriceHtml}`;
         modalDesc.textContent = descripcion;
         modalLink.href = url;
         modalLink.className = 'product-link amazon-link';
@@ -288,9 +311,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            // Guardar globalmente filtrando los vendidos
+            // Guardar globalmente filtrando los vendidos y asegurando que tengan precio válido
             allAvailableProducts = productsArray.filter(p => {
-                return !(stateData[p.id] && stateData[p.id].vendido === true);
+                const itemState = stateData[p.id];
+                const isSold = itemState && itemState.vendido === true;
+                const priceVal = itemState ? itemState.precio : null;
+                const hasValidPrice = priceVal !== undefined && priceVal !== null && String(priceVal).trim() !== '' && Number(priceVal) > 0;
+                return !isSold && hasValidPrice;
             });
             
             applyFiltersAndSort();
