@@ -55,8 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (sortVal === 'name-asc') return a.titulo.localeCompare(b.titulo);
                 if (sortVal === 'name-desc') return b.titulo.localeCompare(a.titulo);
                 
-                const priceA = (stateData[a.id] && stateData[a.id].precio) ? Number(stateData[a.id].precio) : Infinity;
-                const priceB = (stateData[b.id] && stateData[b.id].precio) ? Number(stateData[b.id].precio) : Infinity;
+                const priceA = (stateData[a.id] && stateData[a.id].precio !== undefined && stateData[a.id].precio !== null && stateData[a.id].precio !== '')
+                    ? Number(stateData[a.id].precio)
+                    : Infinity;
+                const priceB = (stateData[b.id] && stateData[b.id].precio !== undefined && stateData[b.id].precio !== null && stateData[b.id].precio !== '')
+                    ? Number(stateData[b.id].precio)
+                    : Infinity;
                 
                 if (sortVal === 'price-asc') return priceA - priceB;
                 if (sortVal === 'price-desc') {
@@ -129,13 +133,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="carousel-btn next" onclick="scrollGallery(event, this, 1)">&#10095;</button>
             `;
 
-            // Obtener precio si existe
+            // Obtener precio si existe y es válido
             let price = '';
             let priceHtml = '';
-            if (stateData[id] && stateData[id].precio) {
-                const roundedPrice = Math.round(Number(stateData[id].precio));
-                price = `$${roundedPrice.toLocaleString('en-US')}`;
-                priceHtml = `<div class="product-price-container"><span class="product-price-symbol">$</span><span class="product-price">${roundedPrice.toLocaleString('en-US')}</span></div>`;
+            const rawPrecio = stateData[id] && stateData[id].precio;
+            if (rawPrecio !== undefined && rawPrecio !== null && rawPrecio !== '') {
+                const precioNum = Number(rawPrecio);
+                if (!isNaN(precioNum) && precioNum > 0) {
+                    const roundedPrice = Math.round(precioNum);
+                    price = `$${roundedPrice.toLocaleString('en-US')}`;
+                    priceHtml = `<div class="product-price-container"><span class="product-price-symbol">$</span><span class="product-price">${roundedPrice.toLocaleString('en-US')}</span></div>`;
+                }
             }
 
             let folioHtml = '';
@@ -294,8 +302,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const productToOpen = allAvailableProducts.find(p => p.id === productIdToOpen);
                 if (productToOpen) {
                     let price = '';
-                    if (stateData[productToOpen.id] && stateData[productToOpen.id].precio) {
-                        price = `$${Math.round(Number(stateData[productToOpen.id].precio)).toLocaleString('en-US')}`;
+                    if (stateData[productToOpen.id]) {
+                        const rawPrecio = stateData[productToOpen.id].precio;
+                        if (rawPrecio !== undefined && rawPrecio !== null && rawPrecio !== '') {
+                            const precioNum = Number(rawPrecio);
+                            if (!isNaN(precioNum) && precioNum > 0) {
+                                price = `$${Math.round(precioNum).toLocaleString('en-US')}`;
+                            }
+                        }
                     }
                     openModal(productToOpen, price);
                 }

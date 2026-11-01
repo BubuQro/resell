@@ -50,27 +50,41 @@ def save_json(filepath, data):
 
 def extract_price(html):
     """
-    Busca patrones comunes de precio en el HTML de Amazon México.
+    Busca patrones de precio en el HTML de Amazon México.
+    Prioriza el precio real de compra sobre precios tachados o de referencia.
     """
-    # 1. Contenedor de precio oculto estándar: <span class="a-offscreen">$1,234.56</span>
-    match = re.search(r'<span class="a-offscreen">([^<]+)</span>', html)
-    if match:
+    # 1. PRIORIDAD: precio en contenedores oficiales de Amazon (evita capturar precios tachados)
+    # Buscar apexPriceToPay / priceToPay / corePriceDisplay primero
+    priority_patterns = [
+        r'apexPriceToPay[^>]*>.*?<span class="a-offscreen">([^<]+)</span>',
+        r'priceToPay[^>]*>.*?<span class="a-offscreen">([^<]+)</span>',
+        r'corePriceDisplay[^>]*>.*?<span class="a-offscreen">([^<]+)</span>',
+        r'corePrice[^>]*>.*?<span class="a-offscreen">([^<]+)</span>',
+    ]
+    for pattern in priority_patterns:
+        match = re.search(pattern, html, re.DOTALL)
+        if match:
+            p = match.group(1).strip()
+            if '$' in p:
+                return p
+
+    # 2. Precio dividido en entero y fracción (dentro de contenedores de precio real):
+    match_whole = re.search(r'class="a-price(?:-symbol)?[^"]*">.*?class="a-price-whole">([^<]+)<', html, re.DOTALL)
+    if not match_whole:
+        match_whole = re.search(r'class="a-price-whole">([^<]+)<', html)
+    match_fraction = re.search(r'class="a-price-fraction">([^<]+)<', html)
+    if match_whole:
+        whole = match_whole.group(1).replace('.', '').replace(',', '').strip()
+        fraction = match_fraction.group(1).strip() if match_fraction else "00"
+        if whole.isdigit():
+            return f"${whole}.{fraction}"
+
+    # 3. Fallback: primer a-offscreen con símbolo de peso
+    # (puede capturar precio tachado — solo se usa si los métodos anteriores fallan)
+    for match in re.finditer(r'<span class="a-offscreen">([^<]+)</span>', html):
         p = match.group(1).strip()
         if '$' in p:
             return p
-
-    # 2. Precio dividido en entero y fracción:
-    match_whole = re.search(r'class="a-price-whole">([^<]+)<', html)
-    match_fraction = re.search(r'class="a-price-fraction">([^<]+)<', html)
-    if match_whole:
-        whole = match_whole.group(1).replace('.', '').strip()
-        fraction = match_fraction.group(1).strip() if match_fraction else "00"
-        return f"${whole}.{fraction}"
-
-    # 3. Precio apex: <span class="apexPriceToPay"><span class="a-offscreen">$...</span></span>
-    match_apex = re.search(r'apexPriceToPay.*?<span class="a-offscreen">([^<]+)</span>', html, re.DOTALL)
-    if match_apex:
-        return match_apex.group(1).strip()
 
     return None
 

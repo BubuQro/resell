@@ -45,7 +45,22 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     state[product_id] = {}
                 
                 if 'precio' in data:
-                    state[product_id]['precio'] = data['precio']
+                    raw_precio = data['precio']
+                    # Validar y normalizar el precio: debe ser número válido o vacío
+                    if raw_precio is None or str(raw_precio).strip() == '':
+                        state[product_id]['precio'] = ''
+                    else:
+                        # Limpiar formato: remover comas de miles, espacios, símbolo $
+                        precio_str = str(raw_precio).strip().replace('$', '').replace(',', '').replace(' ', '')
+                        try:
+                            precio_num = float(precio_str)
+                            if precio_num < 0:
+                                raise ValueError("Precio negativo")
+                            # Guardar como número (no string) para consistencia
+                            state[product_id]['precio'] = precio_num
+                        except (ValueError, TypeError):
+                            # Si no es número válido, conservar el valor previo o vacío
+                            state[product_id]['precio'] = state[product_id].get('precio', '')
                 if 'vendido' in data:
                     state[product_id]['vendido'] = data['vendido']
                 if 'folio' in data:
