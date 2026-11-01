@@ -1378,7 +1378,8 @@
   "B0CTCPKV6Y": {
     "precio": 650,
     "folio": "31",
-    "qr_generado": true
+    "qr_generado": true,
+    "vendido": true
   },
   "B0GH2SZG3V": {
     "precio": 240
