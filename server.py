@@ -56,8 +56,8 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                             precio_num = float(precio_str)
                             if precio_num < 0:
                                 raise ValueError("Precio negativo")
-                            # Guardar como número (no string) para consistencia
-                            state[product_id]['precio'] = precio_num
+                            # Guardar como entero redondeado sin centavos
+                            state[product_id]['precio'] = int(round(precio_num))
                         except (ValueError, TypeError):
                             # Si no es número válido, conservar el valor previo o vacío
                             state[product_id]['precio'] = state[product_id].get('precio', '')

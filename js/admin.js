@@ -89,6 +89,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const isSold = state.vendido;
             const amazonPrice = state.amazon_precio || '---';
             
+            // Sugerencia de 20% menos para el placeholder si no tiene precio
+            let placeholderPrice = "0";
+            if (state.amazon_precio) {
+                const cleanedAmz = Number(String(state.amazon_precio).replace(/[^0-9.]/g, ''));
+                if (!isNaN(cleanedAmz) && cleanedAmz > 0) {
+                    placeholderPrice = Math.round(cleanedAmz * 0.8);
+                }
+            }
+            
             const tr = document.createElement('tr');
             
             tr.innerHTML = `
@@ -115,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="text" class="price-input" id="folio-${id}" value="${state.folio || ''}" placeholder="#Lote" style="width: 80px;">
                 </td>
                 <td>
-                    <input type="number" class="price-input" id="price-${id}" value="${state.precio || ''}" placeholder="0.00">
+                    <input type="number" step="1" class="price-input" id="price-${id}" value="${state.precio !== undefined && state.precio !== null && state.precio !== '' ? Math.round(Number(state.precio)) : ''}" placeholder="${placeholderPrice}">
                     <button class="action-btn save-btn" onclick="saveData('${id}')">Guardar</button>
                 </td>
                 <td>
@@ -132,10 +141,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.saveData = async (id) => {
         const priceInput = document.getElementById(`price-${id}`);
         const folioInput = document.getElementById(`folio-${id}`);
-        const newPrice = priceInput.value;
-        const newFolio = folioInput.value;
+        const rawPrice = priceInput.value.trim();
+        const newPrice = rawPrice !== '' ? Math.round(Number(rawPrice)) : '';
+        const newFolio = folioInput.value.trim();
         
         await updateAPI(id, { precio: newPrice, folio: newFolio });
+        priceInput.value = newPrice;
         alert('Datos guardados correctamente');
     };
 

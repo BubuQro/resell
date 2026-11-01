@@ -186,6 +186,16 @@ def main():
                     if prod_id not in estado_data:
                         estado_data[prod_id] = {}
                     estado_data[prod_id]["amazon_precio"] = precio
+                    
+                    # Calcular precio de venta con 20% de descuento (redondeado sin centavos)
+                    try:
+                        clean_amz = re.sub(r'[^\d.]', '', str(precio).replace(',', ''))
+                        nuevo_precio_venta = int(round(float(clean_amz) * 0.8))
+                        estado_data[prod_id]["precio"] = nuevo_precio_venta
+                        print(f"  🏷️  Precio de venta (-20%): ${nuevo_precio_venta}")
+                    except Exception:
+                        pass
+
                     save_json(ESTADO_FILE, estado_data)
                     exitos += 1
                 else:
