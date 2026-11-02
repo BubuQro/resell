@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BubuStore Studio - Generador de Publicaciones</title>
-    
+
     <!-- Google Fonts: Outfit & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <style>
         :root {
@@ -18,29 +21,29 @@
             --bg-card-hover: #1f2d45;
             --border-color: rgba(255, 255, 255, 0.08);
             --border-focus: #6366f1;
-            
+
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --text-dim: #64748b;
-            
+
             --primary: #6366f1;
             --primary-hover: #4f46e5;
             --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
-            
+
             --accent-green: #10b981;
             --accent-amber: #f59e0b;
             --accent-blue: #38bdf8;
             --fb-blue: #1877f2;
-            
+
             --radius-sm: 8px;
             --radius-md: 12px;
             --radius-lg: 18px;
             --radius-xl: 24px;
-            
+
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
             --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
             --shadow-glow: 0 0 25px rgba(99, 102, 241, 0.25);
-            
+
             --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -501,6 +504,20 @@
             text-align: left;
         }
 
+        .btn-fb-api {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4338ca 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 18px rgba(37, 99, 235, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-fb-api:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 26px rgba(37, 99, 235, 0.6);
+            filter: brightness(1.08);
+        }
+
         .btn-facebook {
             background: linear-gradient(135deg, #1877f2 0%, #0d5ec4 100%);
             color: #ffffff;
@@ -597,7 +614,7 @@
             align-items: center;
             justify-content: center;
             font-size: 1.25rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .fb-author-name {
@@ -764,7 +781,10 @@
         .slider {
             position: absolute;
             cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background-color: rgba(255, 255, 255, 0.15);
             transition: .3s;
             border-radius: 24px;
@@ -782,11 +802,11 @@
             border-radius: 50%;
         }
 
-        input:checked + .slider {
+        input:checked+.slider {
             background-color: var(--primary);
         }
 
-        input:checked + .slider:before {
+        input:checked+.slider:before {
             transform: translateX(20px);
         }
 
@@ -873,6 +893,7 @@
                 opacity: 0;
                 transform: translateY(20px) scale(0.95);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
@@ -899,8 +920,256 @@
         footer a:hover {
             color: var(--primary);
         }
+
+        /* ── Modal Facebook API ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .fb-modal-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 680px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            transform: translateY(20px);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .fb-modal-card {
+            transform: translateY(0);
+        }
+
+        .fb-modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .fb-modal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+        }
+
+        .fb-modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+        }
+
+        .fb-modal-close:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .fb-modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .fb-section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+        }
+
+        .fb-section-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-main);
+        }
+
+        .fb-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .fb-input {
+            flex: 1;
+            min-width: 180px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        .fb-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .fb-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 100px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+        }
+
+        .fb-status-pill.connected {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .fb-groups-list {
+            max-height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .fb-group-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+        }
+
+        .fb-group-item:hover {
+            border-color: var(--border-focus);
+            background: rgba(99, 102, 241, 0.06);
+        }
+
+        .fb-group-item label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            flex: 1;
+            user-select: none;
+        }
+
+        .fb-group-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .fb-group-id {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-family: monospace;
+        }
+
+        .fb-group-delete {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .fb-group-delete:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .fb-log-console {
+            background: #090d16;
+            border: 1px solid #1e293b;
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            max-height: 140px;
+            overflow-y: auto;
+            color: #94a3b8;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .fb-modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.02);
+            gap: 12px;
+        }
+
+        .fb-progress-bar-wrap {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .fb-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #38bdf8, #6366f1);
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
+
 <body>
 
     <!-- Header Navigation -->
@@ -944,13 +1213,16 @@
             </button>
 
             <!-- Navigation Buttons -->
-            <button id="btn-prev" class="btn btn-secondary btn-nav-arrow" title="Producto Anterior (Atajo: Flecha Izq)">◀</button>
-            <button id="btn-next" class="btn btn-secondary btn-nav-arrow" title="Siguiente Producto (Atajo: Flecha Der)">▶</button>
+            <button id="btn-prev" class="btn btn-secondary btn-nav-arrow"
+                title="Producto Anterior (Atajo: Flecha Izq)">◀</button>
+            <button id="btn-next" class="btn btn-secondary btn-nav-arrow"
+                title="Siguiente Producto (Atajo: Flecha Der)">▶</button>
 
             <!-- Search Input -->
             <div class="search-wrapper">
                 <span class="search-icon">🔍</span>
-                <input type="text" id="search-input" class="input-text" placeholder="Buscar por título, folio o ASIN...">
+                <input type="text" id="search-input" class="input-text"
+                    placeholder="Buscar por título, folio o ASIN...">
             </div>
 
             <!-- Product Dropdown -->
@@ -971,7 +1243,7 @@
                     <span>📱</span>
                     <span>Publicación Facebook & Instagram</span>
                 </h2>
-                
+
                 <!-- View Toggle Tabs -->
                 <div class="tab-group">
                     <button id="tab-btn-preview" class="tab-btn active">
@@ -987,7 +1259,8 @@
 
             <!-- Product Summary Card -->
             <div class="product-summary-card">
-                <img id="summary-img" class="summary-thumb" src="" alt="Producto" onerror="this.src='https://via.placeholder.com/150?text=BubuStore';">
+                <img id="summary-img" class="summary-thumb" src="" alt="Producto"
+                    onerror="this.src='https://via.placeholder.com/150?text=BubuStore';">
                 <div class="summary-details">
                     <h3 id="summary-title" class="summary-title">Cargando producto...</h3>
                     <div class="summary-tags">
@@ -1003,15 +1276,22 @@
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 <div class="hook-selector-row">
                     <select id="hook-select" class="hook-select">
-                        <option value="✨ ¡Hoy te recomendamos este producto!">✨ ¡Hoy te recomendamos este producto!</option>
-                        <option value="🔥 ¡Gran oportunidad en nuestro catálogo!">🔥 ¡Gran oportunidad en nuestro catálogo!</option>
-                        <option value="⭐ ¡Descubre este artículo destacado!">⭐ ¡Descubre este artículo destacado!</option>
-                        <option value="✨ ¡Calidad y excelente precio en BubuStore!">✨ ¡Calidad y excelente precio en BubuStore!</option>
+                        <option value="✨ ¡Hoy te recomendamos este producto!">✨ ¡Hoy te recomendamos este producto!
+                        </option>
+                        <option value="🔥 ¡Gran oportunidad en nuestro catálogo!">🔥 ¡Gran oportunidad en nuestro
+                            catálogo!</option>
+                        <option value="⭐ ¡Descubre este artículo destacado!">⭐ ¡Descubre este artículo destacado!
+                        </option>
+                        <option value="✨ ¡Calidad y excelente precio en BubuStore!">✨ ¡Calidad y excelente precio en
+                            BubuStore!</option>
                         <option value="🛍️ ¡No te quedes sin el tuyo!">🛍️ ¡No te quedes sin el tuyo!</option>
-                        <option value="🏷️ ¡Liquidación exclusiva BubuStore!">🏷️ ¡Liquidación exclusiva BubuStore!</option>
-                        <option value="⚡ ¡Stock súper limitado para entrega inmediata!">⚡ ¡Stock súper limitado para entrega inmediata!</option>
+                        <option value="🏷️ ¡Liquidación exclusiva BubuStore!">🏷️ ¡Liquidación exclusiva BubuStore!
+                        </option>
+                        <option value="⚡ ¡Stock súper limitado para entrega inmediata!">⚡ ¡Stock súper limitado para
+                            entrega inmediata!</option>
                     </select>
-                    <button id="btn-shuffle-hook" class="btn btn-secondary" title="Cambiar gancho aleatoriamente">🎲</button>
+                    <button id="btn-shuffle-hook" class="btn btn-secondary"
+                        title="Cambiar gancho aleatoriamente">🎲</button>
                 </div>
 
                 <!-- Toggle: Include Direct Image Link inside copy text -->
@@ -1027,8 +1307,19 @@
             <!-- ACCIÓN EN UN SOLO PASO -->
             <div class="single-action-box">
                 <div class="publish-buttons-grid">
+                    <!-- Botón Compartir a Grupos Facebook API -->
+                    <button id="btn-open-fb-api" class="btn-publish-action btn-fb-api"
+                        title="Compartir automáticamente en tus Grupos de Facebook vía Graph API">
+                        <span class="btn-publish-icon">📡</span>
+                        <div class="btn-publish-text">
+                            <span class="btn-publish-title">Publicar a Grupos (Facebook API)</span>
+                            <span class="btn-publish-desc">Envío directo y automático a tus grupos configurados</span>
+                        </div>
+                    </button>
+
                     <!-- Botón 1 Paso Facebook -->
-                    <button id="btn-publish-facebook" class="btn-publish-action btn-facebook" title="Copia el post completo y abre Facebook en 1 solo paso">
+                    <button id="btn-publish-facebook" class="btn-publish-action btn-facebook"
+                        title="Copia el post completo y abre Facebook en 1 solo paso">
                         <span class="btn-publish-icon">🚀</span>
                         <div class="btn-publish-text">
                             <span class="btn-publish-title">Publicar en Facebook (1 Paso)</span>
@@ -1037,7 +1328,8 @@
                     </button>
 
                     <!-- Botón 1 Paso Instagram -->
-                    <button id="btn-publish-instagram" class="btn-publish-action btn-instagram" title="Copia el copy, descarga la foto y abre Instagram en 1 solo paso">
+                    <button id="btn-publish-instagram" class="btn-publish-action btn-instagram"
+                        title="Copia el copy, descarga la foto y abre Instagram en 1 solo paso">
                         <span class="btn-publish-icon">📸</span>
                         <div class="btn-publish-text">
                             <span class="btn-publish-title">Publicar en Instagram (1 Paso)</span>
@@ -1048,15 +1340,13 @@
 
                 <!-- Acciones secundarias limpias -->
                 <div class="single-action-subrow">
-                    <button id="btn-copy-only-text" class="btn btn-secondary" style="padding: 10px 14px; font-size: 0.85rem;">
+                    <button id="btn-copy-only-text" class="btn btn-secondary"
+                        style="padding: 10px 14px; font-size: 0.85rem;">
                         <span>📋</span>
                         <span>Copiar Solo Texto</span>
                     </button>
-                    <button id="btn-copy-only-photo" class="btn btn-secondary" style="padding: 10px 14px; font-size: 0.85rem;">
-                        <span>🖼️</span>
-                        <span>Copiar Solo Foto</span>
-                    </button>
-                    <button id="btn-download-photo" class="btn btn-secondary" style="padding: 10px 14px; font-size: 0.85rem;">
+                    <button id="btn-download-photo" class="btn btn-secondary"
+                        style="padding: 10px 14px; font-size: 0.85rem;">
                         <span>💾</span>
                         <span>Descargar Foto</span>
                     </button>
@@ -1084,7 +1374,8 @@
 
                 <!-- Attached Product Image in Post -->
                 <div class="fb-media-container">
-                    <img id="fb-post-image" class="fb-media-img" src="" alt="Foto de la publicación" onerror="this.src='https://via.placeholder.com/600x400?text=Foto+del+Producto';">
+                    <img id="fb-post-image" class="fb-media-img" src="" alt="Foto de la publicación"
+                        onerror="this.src='https://via.placeholder.com/600x400?text=Foto+del+Producto';">
                     <div class="fb-media-badge">
                         <span>📸 Foto <span id="current-photo-num-badge">01</span> seleccionada</span>
                     </div>
@@ -1099,7 +1390,8 @@
 
             <!-- VISTA 2: Raw Post Text Editor -->
             <div id="view-post-edit" class="post-textarea-wrapper" style="display: none;">
-                <textarea id="post-textarea" class="post-textarea" spellcheck="false" placeholder="El texto formateado aparecerá aquí..."></textarea>
+                <textarea id="post-textarea" class="post-textarea" spellcheck="false"
+                    placeholder="El texto formateado aparecerá aquí..."></textarea>
                 <div class="textarea-footer">
                     <span id="char-count">0 caracteres • 0 palabras</span>
                     <span>Edita libremente el copy</span>
@@ -1108,32 +1400,161 @@
 
             <!-- Auxiliary links -->
             <div style="display: flex; justify-content: flex-end;">
-                <a id="btn-view-store" href="#" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                <a id="btn-view-store" href="#" target="_blank" rel="noopener noreferrer"
+                    style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                     <span>🔗 Ver ficha en catálogo BubuStore</span>
                 </a>
             </div>
         </div>
     </main>
 
+    <!-- MODAL FACEBOOK GRAPH API -->
+    <div id="fb-api-modal" class="modal-overlay">
+        <div class="fb-modal-card">
+            <div class="fb-modal-header">
+                <div class="fb-modal-title">
+                    <span>📡</span>
+                    <span>Compartir en Grupos de Facebook vía API</span>
+                </div>
+                <button id="fb-modal-close-btn" class="fb-modal-close" title="Cerrar">&times;</button>
+            </div>
+
+            <div class="fb-modal-body">
+                <!-- SECCIÓN 1: TOKEN DE ACCESO -->
+                <div class="fb-section">
+                    <div class="fb-section-title">
+                        <span>🔑 Token de Acceso (Graph API)</span>
+                        <span id="fb-token-status" class="fb-status-pill">No verificado</span>
+                    </div>
+                    <div class="fb-input-group">
+                        <input type="password" id="fb-access-token" class="fb-input"
+                            placeholder="Pega tu Access Token de Facebook (EAA...)">
+                        <button id="fb-btn-toggle-token-eye" class="btn btn-secondary" title="Ver / Ocultar token"
+                            style="padding: 8px 12px;">👁️</button>
+                        <button id="fb-btn-test-token" class="btn btn-secondary"
+                            title="Verificar validez del token en Facebook">🔍 Validar</button>
+                        <button id="fb-btn-save-token" class="btn btn-primary" title="Guardar configuración">💾
+                            Guardar</button>
+                    </div>
+                    <div id="fb-user-badge"
+                        style="display: none; align-items: center; gap: 8px; font-size: 0.85rem; color: #34d399; margin-top: 6px;">
+                        <span>👤 Conectado como:</span>
+                        <strong id="fb-user-name"></strong>
+                    </div>
+
+                    <!-- Guía rápida de ayuda colapsable -->
+                    <details style="margin-top: 10px; font-size: 0.8rem; color: var(--text-dim);">
+                        <summary style="cursor: pointer; color: var(--accent-blue);">ℹ️ ¿Cómo obtener tu Token de
+                            Facebook?</summary>
+                        <div
+                            style="margin-top: 8px; line-height: 1.5; padding-left: 8px; border-left: 2px solid var(--border-color);">
+                            1. Entra a <a href="https://developers.facebook.com/tools/explorer/" target="_blank"
+                                style="color: var(--accent-blue);">Facebook Graph API Explorer</a>.<br>
+                            2. Selecciona tu App o crea una para tu tienda.<br>
+                            3. En <strong>Permisos</strong>, agrega: <code>publish_to_groups</code>,
+                            <code>pages_manage_posts</code>, <code>pages_read_engagement</code>.<br>
+                            4. Haz clic en <strong>Generate Access Token</strong> y pégalo aquí.
+                        </div>
+                    </details>
+                </div>
+
+                <!-- SECCIÓN 2: GRUPOS DESTINO -->
+                <div class="fb-section">
+                    <div class="fb-section-title">
+                        <span>👥 Grupos de Facebook Destino</span>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button id="fb-btn-select-all" class="btn btn-secondary"
+                                style="padding: 4px 10px; font-size: 0.75rem;">☑️ Todos</button>
+                            <button id="fb-btn-deselect-all" class="btn btn-secondary"
+                                style="padding: 4px 10px; font-size: 0.75rem;">Desmarcar</button>
+                        </div>
+                    </div>
+
+                    <!-- Formulario para agregar un grupo -->
+                    <div class="fb-input-group">
+                        <input type="text" id="fb-new-group-name" class="fb-input"
+                            placeholder="Nombre (ej. Bazar Querétaro)">
+                        <input type="text" id="fb-new-group-id" class="fb-input"
+                            placeholder="ID del Grupo (ej. 123456789012345)">
+                        <button id="fb-btn-add-group" class="btn btn-secondary" style="white-space: nowrap;">➕
+                            Agregar</button>
+                    </div>
+
+                    <!-- Lista de grupos configurados -->
+                    <div id="fb-groups-list" class="fb-groups-list">
+                        <!-- Renderizados dinámicamente -->
+                    </div>
+
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 8px;">
+                        <span id="fb-selected-counter" style="font-size: 0.8rem; color: var(--text-muted);">0 grupos
+                            seleccionados</span>
+                        <button id="fb-btn-autodetect-groups" class="btn btn-secondary"
+                            style="padding: 6px 12px; font-size: 0.8rem;">🔍 Autodetectar Grupos de mi cuenta</button>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: OPCIONES DE PUBLICACIÓN -->
+                <div class="fb-section">
+                    <div class="fb-section-title">
+                        <span>⚙️ Formato de Publicación</span>
+                    </div>
+                    <div style="display: flex; gap: 20px; font-size: 0.9rem; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="fb-post-mode" value="photo" checked>
+                            <span>🖼️ Foto del Producto + Copy Completo (Recomendado)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="fb-post-mode" value="feed">
+                            <span>📝 Solo Texto + Enlace de la Tienda</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- BITÁCORA Y PROGRESO -->
+                <div id="fb-log-section" style="display: none;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 0.85rem; font-weight: 600;">Progreso de Publicación:</span>
+                        <span id="fb-progress-percent" style="font-size: 0.8rem; color: var(--accent-blue);">0%</span>
+                    </div>
+                    <div class="fb-progress-bar-wrap" id="fb-progress-bar-wrap">
+                        <div class="fb-progress-bar" id="fb-progress-bar"></div>
+                    </div>
+                    <div id="fb-log-console" class="fb-log-console" style="margin-top: 8px;"></div>
+                </div>
+            </div>
+
+            <div class="fb-modal-footer">
+                <button id="fb-btn-close-bottom" class="btn btn-secondary">Cerrar</button>
+                <button id="fb-btn-start-publish" class="btn btn-primary"
+                    style="background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); font-weight: 700; padding: 12px 24px;">
+                    <span>🚀 Publicar en Grupos Seleccionados</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications Container -->
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Footer -->
     <footer>
-        <p>BubuStore Studio © 2026 • Catálogo en línea: <a href="https://jaxohua.github.io/bubustore/" target="_blank">jaxohua.github.io/bubustore</a></p>
+        <p>BubuStore Studio © 2026 • Catálogo en línea: <a href="https://bubuqro.github.io/resell/"
+                target="_blank">bubuqro.github.io/resell</a></p>
     </footer>
 
     <!-- Logic Script -->
     <script>
-        (function() {
+        (function () {
             'use strict';
 
             // Constants & URLs
-            const STORE_BASE_URL = 'https://jaxohua.github.io/bubustore/';
+            const STORE_BASE_URL = 'https://bubuqro.github.io/resell/';
             const LOCAL_PRODUCTOS_URL = 'data/productos.json';
             const LOCAL_ESTADO_URL = 'data/estado_productos.json';
-            const REMOTE_PRODUCTOS_URL = 'https://jaxohua.github.io/bubustore/data/productos.json';
-            const REMOTE_ESTADO_URL = 'https://jaxohua.github.io/bubustore/data/estado_productos.json';
+            const REMOTE_PRODUCTOS_URL = 'https://bubuqro.github.io/resell/data/productos.json';
+            const REMOTE_ESTADO_URL = 'https://bubuqro.github.io/resell/data/estado_productos.json';
 
             // App State
             let catalogProducts = [];
@@ -1153,7 +1574,7 @@
             const btnNext = document.getElementById('btn-next');
             const searchInput = document.getElementById('search-input');
             const productSelect = document.getElementById('product-select');
-            
+
             const summaryImg = document.getElementById('summary-img');
             const summaryTitle = document.getElementById('summary-title');
             const summaryFolio = document.getElementById('summary-folio');
@@ -1175,12 +1596,11 @@
             const togglePhotoLink = document.getElementById('toggle-photo-link');
             const postTextarea = document.getElementById('post-textarea');
             const charCountEl = document.getElementById('char-count');
-            
+
             // Single Step Action Elements
             const btnPublishFacebook = document.getElementById('btn-publish-facebook');
             const btnPublishInstagram = document.getElementById('btn-publish-instagram');
             const btnCopyOnlyText = document.getElementById('btn-copy-only-text');
-            const btnCopyOnlyPhoto = document.getElementById('btn-copy-only-photo');
             const btnDownloadPhoto = document.getElementById('btn-download-photo');
 
             const btnViewStore = document.getElementById('btn-view-store');
@@ -1206,7 +1626,7 @@
             function showToast(message, type = 'success', duration = 3500) {
                 const toast = document.createElement('div');
                 toast.className = `toast ${type}`;
-                
+
                 let icon = '✅';
                 if (type === 'info') icon = 'ℹ️';
                 if (type === 'warning') icon = '⚠️';
@@ -1229,7 +1649,7 @@
                 text = text.replace(/^[【\[\s*•\-\*]+/, '');
                 text = text.replace(/[】\]]\s*:?/g, ': ');
                 text = text.replace(/\s+/g, ' ').trim();
-                
+
                 const sentences = text.split(/(?<=[.!?])\s+/);
                 let first = sentences[0] ? sentences[0].trim() : '';
                 if (first.length < 25 && sentences.length > 1) {
@@ -1377,6 +1797,9 @@
                 }
                 const hashtagsStr = hashtags.join(' ');
 
+                // Puntos de entrega personales
+                const deliveryText = `📍 Puntos de entrega personales en Querétaro:\n• Chedraui Selecto Centro Sur en Santiago Querétaro: https://share.google/K2zhwDvKu2ZqXdBgn\n• Soriana Huimilpan: https://maps.app.goo.gl/AYdXX1ub89FiBKYj6`;
+
                 // Armar bloques de texto para la publicación
                 const priceLine = savingText ? `💰 Precio BubuStore: ${priceFormatted} ${savingText}` : `💰 Precio: ${priceFormatted}`;
                 const bloques = [
@@ -1386,6 +1809,7 @@
                     `📋 Especificaciones técnicas:\n${specsStr}`,
                     urlLine,
                     photoLine,
+                    deliveryText,
                     `📩 Envíanos mensaje para coordinar tu compra o entrega inmediata.`,
                     hashtagsStr
                 ];
@@ -1419,7 +1843,7 @@
 
                 const productId = currentProduct.id;
                 const primaryUrl = `images/${productId}_${photoNum}.jpg`;
-                const fallbackUrl = `https://jaxohua.github.io/bubustore/images/${productId}_${photoNum}.jpg`;
+                const fallbackUrl = `https://bubuqro.github.io/resell/images/${productId}_${photoNum}.jpg`;
 
                 // Update Facebook Post preview image
                 fbPostImage.src = primaryUrl;
@@ -1503,7 +1927,7 @@
                 summaryTitle.textContent = currentPostData.titulo;
                 summaryFolio.textContent = currentPostData.folio ? `🏷️ Folio: #${currentPostData.folio}` : '🏷️ Folio: --';
                 summaryPrice.textContent = `💰 ${currentPostData.price}`;
-                
+
                 if (currentPostData.amazonPriceFormatted) {
                     summaryAmazon.style.display = 'inline-flex';
                     summaryAmazon.textContent = `Amazon: ${currentPostData.amazonPriceFormatted}`;
@@ -1726,22 +2150,7 @@
                 }
             });
 
-            // ── Copiar Solo Foto ───────────────────────────────────────────────
-            btnCopyOnlyPhoto.addEventListener('click', async () => {
-                try {
-                    const photoBlob = await getProductPhotoBlob();
-                    if (navigator.clipboard && navigator.clipboard.write) {
-                        const item = new ClipboardItem({ 'image/png': photoBlob });
-                        await navigator.clipboard.write([item]);
-                        showToast(`🖼️ ¡Foto ${selectedPhotoNum} copiada al portapapeles!`, "success");
-                    } else {
-                        triggerPhotoDownload();
-                        showToast("Descargando imagen del producto.", "info");
-                    }
-                } catch (err) {
-                    showToast("Error al copiar imagen: " + err.message, "warning");
-                }
-            });
+
 
             // ── Descargar Foto ────────────────────────────────────────────────
             function triggerPhotoDownload() {
@@ -1828,7 +2237,7 @@
                     const estado = catalogState[p.id] || {};
                     const folio = estado.folio ? `[#${estado.folio}] ` : '';
                     let price = estado.precio ? `$${Math.round(Number(estado.precio))} MXN` : 'Sin precio';
-                    
+
                     const opt = document.createElement('option');
                     opt.value = p.id;
                     opt.textContent = `${folio}${p.titulo.substring(0, 55)}... (${price})`;
@@ -1850,7 +2259,7 @@
                     const estado = catalogState[p.id] || {};
                     const folio = estado.folio ? `[#${estado.folio}] ` : '';
                     let price = estado.precio ? `$${Math.round(Number(estado.precio))} MXN` : 'Sin precio';
-                    
+
                     const opt = document.createElement('option');
                     opt.value = p.id;
                     opt.textContent = `${folio}${p.titulo.substring(0, 55)}... (${price})`;
@@ -1924,9 +2333,403 @@
                 goToProduct(targetIndex);
             }
 
+            // ── Facebook API Integration ─────────────────────────────────────
+            const btnOpenFbApi = document.getElementById('btn-open-fb-api');
+            const fbModal = document.getElementById('fb-api-modal');
+            const fbModalCloseBtn = document.getElementById('fb-modal-close-btn');
+            const fbBtnCloseBottom = document.getElementById('fb-btn-close-bottom');
+            const fbAccessToken = document.getElementById('fb-access-token');
+            const fbBtnToggleTokenEye = document.getElementById('fb-btn-toggle-token-eye');
+            const fbBtnTestToken = document.getElementById('fb-btn-test-token');
+            const fbBtnSaveToken = document.getElementById('fb-btn-save-token');
+            const fbTokenStatus = document.getElementById('fb-token-status');
+            const fbUserBadge = document.getElementById('fb-user-badge');
+            const fbUserName = document.getElementById('fb-user-name');
+            const fbGroupsList = document.getElementById('fb-groups-list');
+            const fbNewGroupName = document.getElementById('fb-new-group-name');
+            const fbNewGroupId = document.getElementById('fb-new-group-id');
+            const fbBtnAddGroup = document.getElementById('fb-btn-add-group');
+            const fbBtnSelectAll = document.getElementById('fb-btn-select-all');
+            const fbBtnDeselectAll = document.getElementById('fb-btn-deselect-all');
+            const fbSelectedCounter = document.getElementById('fb-selected-counter');
+            const fbBtnAutodetectGroups = document.getElementById('fb-btn-autodetect-groups');
+            const fbBtnStartPublish = document.getElementById('fb-btn-start-publish');
+            const fbLogSection = document.getElementById('fb-log-section');
+            const fbLogConsole = document.getElementById('fb-log-console');
+            const fbProgressBarWrap = document.getElementById('fb-progress-bar-wrap');
+            const fbProgressBar = document.getElementById('fb-progress-bar');
+            const fbProgressPercent = document.getElementById('fb-progress-percent');
+
+            let fbConfig = {
+                access_token: '',
+                groups: []
+            };
+
+            function openFbModal() {
+                fbModal.classList.add('active');
+                loadFbConfig();
+            }
+
+            function closeFbModal() {
+                fbModal.classList.remove('active');
+            }
+
+            btnOpenFbApi.addEventListener('click', openFbModal);
+            fbModalCloseBtn.addEventListener('click', closeFbModal);
+            fbBtnCloseBottom.addEventListener('click', closeFbModal);
+
+            fbModal.addEventListener('click', (e) => {
+                if (e.target === fbModal) closeFbModal();
+            });
+
+            // Toggle show/hide password token
+            fbBtnToggleTokenEye.addEventListener('click', () => {
+                if (fbAccessToken.type === 'password') {
+                    fbAccessToken.type = 'text';
+                    fbBtnToggleTokenEye.textContent = '🔒';
+                } else {
+                    fbAccessToken.type = 'password';
+                    fbBtnToggleTokenEye.textContent = '👁️';
+                }
+            });
+
+            // Cargar configuración de Facebook (desde servidor o localStorage)
+            async function loadFbConfig() {
+                try {
+                    const res = await fetch('/api/facebook/config');
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && typeof data === 'object') {
+                            fbConfig.access_token = data.access_token || '';
+                            fbConfig.groups = Array.isArray(data.groups) ? data.groups : [];
+                        }
+                    }
+                } catch (e) {
+                    console.log("No se pudo cargar config de Facebook desde API, usando localStorage.");
+                }
+
+                // Fallback / merge con localStorage
+                const localSaved = localStorage.getItem('bubu_fb_config');
+                if (localSaved) {
+                    try {
+                        const parsed = JSON.parse(localSaved);
+                        if (!fbConfig.access_token && parsed.access_token) {
+                            fbConfig.access_token = parsed.access_token;
+                        }
+                        if ((!fbConfig.groups || fbConfig.groups.length === 0) && Array.isArray(parsed.groups)) {
+                            fbConfig.groups = parsed.groups;
+                        }
+                    } catch (e) { }
+                }
+
+                fbAccessToken.value = fbConfig.access_token || '';
+                renderFbGroupsList();
+            }
+
+            // Guardar configuración de Facebook
+            async function saveFbConfig(notify = true) {
+                fbConfig.access_token = fbAccessToken.value.trim();
+                localStorage.setItem('bubu_fb_config', JSON.stringify(fbConfig));
+
+                try {
+                    await fetch('/api/facebook/config', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(fbConfig)
+                    });
+                } catch (e) {
+                    console.warn("No se pudo persistir en backend /api/facebook/config:", e);
+                }
+
+                if (notify) {
+                    showToast("💾 Configuración de Facebook guardada correctamente.", "success");
+                }
+            }
+
+            fbBtnSaveToken.addEventListener('click', () => saveFbConfig(true));
+
+            // Render lista de grupos
+            function renderFbGroupsList() {
+                fbGroupsList.innerHTML = '';
+                if (!fbConfig.groups || fbConfig.groups.length === 0) {
+                    fbGroupsList.innerHTML = `
+                        <div style="text-align: center; color: var(--text-dim); padding: 20px; font-size: 0.85rem;">
+                            No tienes grupos agregados todavía.<br>Escribe el nombre e ID arriba o haz clic en "Autodetectar".
+                        </div>
+                    `;
+                    updateSelectedCounter();
+                    return;
+                }
+
+                fbConfig.groups.forEach((g, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'fb-group-item';
+                    item.innerHTML = `
+                        <label>
+                            <input type="checkbox" class="fb-group-checkbox" data-index="${idx}" ${g.selected !== false ? 'checked' : ''}>
+                            <div>
+                                <div class="fb-group-name">${g.name || 'Grupo sin nombre'}</div>
+                                <div class="fb-group-id">ID: ${g.id}</div>
+                            </div>
+                        </label>
+                        <button class="fb-group-delete" title="Eliminar grupo" data-index="${idx}">&times;</button>
+                    `;
+                    fbGroupsList.appendChild(item);
+                });
+
+                // Attach listeners
+                fbGroupsList.querySelectorAll('.fb-group-checkbox').forEach(cb => {
+                    cb.addEventListener('change', (e) => {
+                        const index = parseInt(e.target.dataset.index, 10);
+                        if (fbConfig.groups[index]) {
+                            fbConfig.groups[index].selected = e.target.checked;
+                            updateSelectedCounter();
+                            saveFbConfig(false);
+                        }
+                    });
+                });
+
+                fbGroupsList.querySelectorAll('.fb-group-delete').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const index = parseInt(e.target.dataset.index, 10);
+                        if (fbConfig.groups[index]) {
+                            const name = fbConfig.groups[index].name;
+                            fbConfig.groups.splice(index, 1);
+                            renderFbGroupsList();
+                            saveFbConfig(false);
+                            showToast(`Grupo "${name}" eliminado.`, "info", 1500);
+                        }
+                    });
+                });
+
+                updateSelectedCounter();
+            }
+
+            function updateSelectedCounter() {
+                const selected = fbConfig.groups ? fbConfig.groups.filter(g => g.selected !== false).length : 0;
+                fbSelectedCounter.textContent = `${selected} de ${fbConfig.groups.length} grupos seleccionados`;
+                fbBtnStartPublish.querySelector('span').textContent = `🚀 Publicar en ${selected} grupo(s) seleccionado(s)`;
+            }
+
+            // Seleccionar todos / Desmarcar todos
+            fbBtnSelectAll.addEventListener('click', () => {
+                if (fbConfig.groups) {
+                    fbConfig.groups.forEach(g => g.selected = true);
+                    renderFbGroupsList();
+                    saveFbConfig(false);
+                }
+            });
+
+            fbBtnDeselectAll.addEventListener('click', () => {
+                if (fbConfig.groups) {
+                    fbConfig.groups.forEach(g => g.selected = false);
+                    renderFbGroupsList();
+                    saveFbConfig(false);
+                }
+            });
+
+            // Validar Token
+            fbBtnTestToken.addEventListener('click', async () => {
+                const token = fbAccessToken.value.trim();
+                if (!token) {
+                    showToast("Por favor ingresa un Access Token primero", "warning");
+                    return;
+                }
+
+                fbBtnTestToken.disabled = true;
+                fbBtnTestToken.textContent = "Validando...";
+                fbTokenStatus.textContent = "Consultando...";
+                fbTokenStatus.className = "fb-status-pill";
+
+                try {
+                    const res = await fetch('/api/facebook/test_token', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ access_token: token })
+                    });
+                    const data = await res.json();
+
+                    if (data.status === 'success' && data.user) {
+                        fbTokenStatus.textContent = "🟢 Token Válido";
+                        fbTokenStatus.className = "fb-status-pill connected";
+                        fbUserBadge.style.display = "flex";
+                        fbUserName.textContent = data.user.name || "Usuario verificado";
+                        saveFbConfig(false);
+
+                        // Si Facebook devolvió grupos o páginas, ofrecer agregarlos
+                        const allFound = [...(data.groups || []), ...(data.pages || [])];
+                        if (allFound.length > 0) {
+                            let addedCount = 0;
+                            allFound.forEach(item => {
+                                if (!fbConfig.groups.some(g => g.id === item.id)) {
+                                    fbConfig.groups.push({
+                                        id: item.id,
+                                        name: item.name,
+                                        selected: true
+                                    });
+                                    addedCount++;
+                                }
+                            });
+                            if (addedCount > 0) {
+                                renderFbGroupsList();
+                                saveFbConfig(false);
+                                showToast(`🎉 ¡Token válido! Se agregaron ${addedCount} grupo(s)/página(s) de tu cuenta.`, "success", 4000);
+                                return;
+                            }
+                        }
+
+                        showToast(`✅ Conexión exitosa con Facebook como: ${data.user.name}`, "success");
+                    } else {
+                        fbTokenStatus.textContent = "❌ Token Inválido";
+                        fbTokenStatus.className = "fb-status-pill";
+                        fbUserBadge.style.display = "none";
+                        showToast(`Error de Facebook: ${data.message || 'Token rechazado'}`, "warning", 5000);
+                    }
+                } catch (e) {
+                    fbTokenStatus.textContent = "⚠️ Error de red";
+                    showToast("Error al conectar con el servidor: " + e.message, "warning");
+                } finally {
+                    fbBtnTestToken.disabled = false;
+                    fbBtnTestToken.textContent = "🔍 Validar";
+                }
+            });
+
+            // Agregar nuevo grupo manualmente
+            fbBtnAddGroup.addEventListener('click', () => {
+                const name = fbNewGroupName.value.trim();
+                let id = fbNewGroupId.value.trim();
+
+                if (!id) {
+                    showToast("Por favor ingresa el ID del Grupo de Facebook", "warning");
+                    return;
+                }
+
+                // Si pegó una URL completa de grupo (ej: facebook.com/groups/123456789), extraer el ID
+                const urlMatch = id.match(/groups\/(\d+)/i) || id.match(/(\d{6,})/);
+                if (urlMatch && urlMatch[1]) {
+                    id = urlMatch[1];
+                }
+
+                if (fbConfig.groups.some(g => g.id === id)) {
+                    showToast("Ese grupo ya está en tu lista", "info");
+                    return;
+                }
+
+                fbConfig.groups.push({
+                    name: name || `Grupo ${id}`,
+                    id: id,
+                    selected: true
+                });
+
+                fbNewGroupName.value = '';
+                fbNewGroupId.value = '';
+                renderFbGroupsList();
+                saveFbConfig(false);
+                showToast(`Grupo "${name || id}" agregado con éxito`, "success", 2000);
+            });
+
+            // Autodetectar grupos
+            fbBtnAutodetectGroups.addEventListener('click', async () => {
+                fbBtnTestToken.click();
+            });
+
+            // Publicar en Facebook API
+            fbBtnStartPublish.addEventListener('click', async () => {
+                const token = fbAccessToken.value.trim();
+                if (!token) {
+                    showToast("⚠️ Ingresa y valida tu Access Token de Facebook primero", "warning");
+                    return;
+                }
+
+                const selectedGroups = fbConfig.groups.filter(g => g.selected !== false);
+                if (selectedGroups.length === 0) {
+                    showToast("⚠️ Marca al menos 1 grupo para publicar", "warning");
+                    return;
+                }
+
+                const message = postTextarea.value.trim();
+                if (!message) {
+                    showToast("⚠️ No hay texto para publicar", "warning");
+                    return;
+                }
+
+                const postMode = document.querySelector('input[name="fb-post-mode"]:checked')?.value || 'photo';
+
+                fbBtnStartPublish.disabled = true;
+                fbLogSection.style.display = 'block';
+                fbProgressBarWrap.style.display = 'block';
+                fbProgressBar.style.width = '0%';
+                fbProgressPercent.textContent = '0%';
+                fbLogConsole.textContent = `[${new Date().toLocaleTimeString()}] 🚀 Iniciando publicación en ${selectedGroups.length} grupo(s)...\nModo: ${postMode === 'photo' ? '🖼️ Foto + Copy Completo' : '📝 Solo Texto'}\n----------------------------------------\n`;
+
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (let i = 0; i < selectedGroups.length; i++) {
+                    const g = selectedGroups[i];
+                    const num = i + 1;
+                    fbLogConsole.textContent += `[${new Date().toLocaleTimeString()}] (${num}/${selectedGroups.length}) Publicando en: "${g.name}" (ID: ${g.id})...\n`;
+                    fbLogConsole.scrollTop = fbLogConsole.scrollHeight;
+
+                    try {
+                        const payload = {
+                            access_token: token,
+                            target_id: g.id,
+                            target_name: g.name,
+                            message: message,
+                            post_type: postMode,
+                            product_id: currentPostData ? currentPostData.productId : '',
+                            photo_num: selectedPhotoNum,
+                            image_url: `https://bubuqro.github.io/resell/images/${currentPostData ? currentPostData.productId : ''}_${selectedPhotoNum}.jpg`,
+                            link: currentPostData ? currentPostData.url : 'https://bubuqro.github.io/resell/'
+                        };
+
+                        const res = await fetch('/api/facebook/publish', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const resData = await res.json();
+                        if (resData.status === 'success') {
+                            successCount++;
+                            fbLogConsole.textContent += `   ✅ ¡Éxito! Post ID: ${resData.post_id || resData.id}\n`;
+                        } else {
+                            errorCount++;
+                            fbLogConsole.textContent += `   ❌ Falló: ${resData.message || 'Error desconocido de Facebook'}\n`;
+                        }
+                    } catch (err) {
+                        errorCount++;
+                        fbLogConsole.textContent += `   ❌ Error de red: ${err.message}\n`;
+                    }
+
+                    const pct = Math.round((num / selectedGroups.length) * 100);
+                    fbProgressBar.style.width = `${pct}%`;
+                    fbProgressPercent.textContent = `${pct}%`;
+                    fbLogConsole.scrollTop = fbLogConsole.scrollHeight;
+
+                    // Pausa prudente de 1.5s entre grupos para evitar restricciones de Facebook
+                    if (i < selectedGroups.length - 1) {
+                        await new Promise(r => setTimeout(r, 1500));
+                    }
+                }
+
+                fbLogConsole.textContent += `----------------------------------------\n`;
+                fbLogConsole.textContent += `🏁 Proceso completado: ${successCount} exitoso(s), ${errorCount} error(es).\n`;
+                fbLogConsole.scrollTop = fbLogConsole.scrollHeight;
+                fbBtnStartPublish.disabled = false;
+
+                if (successCount > 0) {
+                    showToast(`🎉 ¡Publicado con éxito en ${successCount} grupo(s)!`, "success", 5000);
+                } else {
+                    showToast("⚠️ No se pudo publicar. Revisa la consola de registro para ver el error de Facebook.", "warning", 5000);
+                }
+            });
+
             loadCatalogData();
 
         })();
     </script>
 </body>
+
 </html>

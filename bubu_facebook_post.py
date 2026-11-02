@@ -11,9 +11,9 @@ import os
 import subprocess
 import textwrap
 
-PRODUCTOS_URL = 'https://jaxohua.github.io/bubustore/data/productos.json'
-ESTADO_URL    = 'https://jaxohua.github.io/bubustore/data/estado_productos.json'
-STORE_BASE_URL = 'https://jaxohua.github.io/bubustore/'
+PRODUCTOS_URL = 'https://bubuqro.github.io/resell/data/productos.json'
+ESTADO_URL    = 'https://bubuqro.github.io/resell/data/estado_productos.json'
+STORE_BASE_URL = 'https://bubuqro.github.io/resell/'
 
 # ─── Control de Versiones ────────────────────────────────────────────────────
 APP_VERSION = '1.2.0'
