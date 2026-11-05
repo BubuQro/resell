@@ -2,12 +2,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('admin-table-body');
     const adminStatusFilter = document.getElementById('admin-status-filter');
     const adminSearchInput = document.getElementById('admin-search-input');
+    const toastContainer = document.getElementById('admin-toast-container');
     
     let productsList = [];
     let stateData = {};
+    const statusTimers = {};
 
     if (adminStatusFilter) adminStatusFilter.addEventListener('change', () => renderAdminTable());
     if (adminSearchInput) adminSearchInput.addEventListener('input', () => renderAdminTable());
+
+    // Muestra un aviso flotante a un costado que desaparece solo sin requerir clic
+    const showSideToast = (message, type = 'success') => {
+        if (!toastContainer) return;
+        const toast = document.createElement('div');
+        toast.className = `admin-side-toast ${type === 'error' ? 'error' : ''}`;
+        const icon = type === 'error' ? '⚠️' : '✅';
+        toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            setTimeout(() => toast.remove(), 250);
+        }, 2200);
+    };
+
+    // Muestra el indicador de guardado justo al costado del input/botón de la fila
+    const showInlineRowStatus = (id, text, type = 'success', autoHide = true) => {
+        const badge = document.getElementById(`save-status-${id}`);
+        if (!badge) return;
+
+        if (statusTimers[id]) {
+            clearTimeout(statusTimers[id]);
+        }
+
+        badge.textContent = text;
+        badge.className = `inline-save-status visible ${type}`;
+
+        if (autoHide) {
+            statusTimers[id] = setTimeout(() => {
+                badge.classList.remove('visible');
+            }, 2200);
+        }
+    };
 
     const loadData = async () => {
         try {
@@ -42,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Error:', error);
-            tableBody.innerHTML = `<tr><td colspan="5" style="color:red">Error al cargar los datos</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" style="color:red">Error al cargar los datos</td></tr>`;
         }
     };
 
@@ -121,11 +158,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${amazonPrice}
                 </td>
                 <td>
-                    <input type="text" class="price-input" id="folio-${id}" value="${state.folio || ''}" placeholder="#Lote" style="width: 80px;">
+                    <input type="text" class="price-input" id="folio-${id}" value="${state.folio || ''}" placeholder="#Lote" style="width: 80px;" title="Presiona Enter para guardar">
                 </td>
                 <td>
-                    <input type="number" step="1" class="price-input" id="price-${id}" value="${state.precio !== undefined && state.precio !== null && state.precio !== '' ? Math.round(Number(state.precio)) : ''}" placeholder="${placeholderPrice}">
-                    <button class="action-btn save-btn" onclick="saveData('${id}')">Guardar</button>
+                    <div class="price-cell-wrap">
+                        <input type="number" step="1" class="price-input" id="price-${id}" value="${state.precio !== undefined && state.precio !== null && state.precio !== '' ? Math.round(Number(state.precio)) : ''}" placeholder="${placeholderPrice}" title="Escribe el precio y presiona Enter para guardar">
+                        <button class="action-btn save-btn" onclick="saveData('${id}')">Guardar</button>
+                        <span class="inline-save-status" id="save-status-${id}"></span>
+                    </div>
                 </td>
                 <td>
                     <button class="action-btn toggle-btn ${isSold ? '' : 'is-sold'}" id="toggle-${id}" onclick="toggleSold('${id}')">
@@ -135,19 +175,47 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             
             tableBody.appendChild(tr);
+
+            // Auto-guardar al presionar Enter en el campo de precio o de folio
+            const priceInputEl = tr.querySelector(`#price-${id}`);
+            const folioInputEl = tr.querySelector(`#folio-${id}`);
+
+            const handleEnterKey = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    window.saveData(id);
+                }
+            };
+
+            if (priceInputEl) priceInputEl.addEventListener('keydown', handleEnterKey);
+            if (folioInputEl) folioInputEl.addEventListener('keydown', handleEnterKey);
         });
     };
 
     window.saveData = async (id) => {
         const priceInput = document.getElementById(`price-${id}`);
         const folioInput = document.getElementById(`folio-${id}`);
+        if (!priceInput || !folioInput) return;
+
         const rawPrice = priceInput.value.trim();
         const newPrice = rawPrice !== '' ? Math.round(Number(rawPrice)) : '';
         const newFolio = folioInput.value.trim();
         
-        await updateAPI(id, { precio: newPrice, folio: newFolio });
-        priceInput.value = newPrice;
-        alert('Datos guardados correctamente');
+        showInlineRowStatus(id, 'Guardando...', 'saving', false);
+
+        const ok = await updateAPI(id, { precio: newPrice, folio: newFolio });
+        if (ok) {
+            priceInput.value = newPrice;
+            priceInput.classList.add('input-saved-flash');
+            setTimeout(() => priceInput.classList.remove('input-saved-flash'), 1200);
+
+            showInlineRowStatus(id, '✓ Guardado', 'success', true);
+            const priceLabel = newPrice !== '' ? `$${newPrice}` : 'Sin precio';
+            const folioLabel = newFolio ? ` • Folio #${newFolio}` : '';
+            showSideToast(`Guardado (${id}): ${priceLabel}${folioLabel}`, 'success');
+        } else {
+            showInlineRowStatus(id, '✕ Error', 'error', true);
+        }
     };
 
     window.toggleSold = async (id) => {
@@ -155,7 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const newState = !stateData[id].vendido;
         stateData[id].vendido = newState;
         
-        await updateAPI(id, { vendido: newState });
+        const ok = await updateAPI(id, { vendido: newState });
+        if (ok) {
+            showSideToast(`${id} marcado como ${newState ? 'VENDIDO' : 'DISPONIBLE'}`, 'success');
+        }
         renderAdminTable(); // re-render to update UI
     };
 
@@ -174,10 +245,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if('precio' in dataObj) stateData[id].precio = dataObj.precio;
             if('vendido' in dataObj) stateData[id].vendido = dataObj.vendido;
             if('folio' in dataObj) stateData[id].folio = dataObj.folio;
-            
+            return true;
         } catch(e) {
             console.error(e);
-            alert("Hubo un error guardando los datos. Asegúrate de que el servidor python (server.py) esté corriendo.");
+            showSideToast("Error al guardar. Verifica que server.py esté activo.", "error");
+            return false;
         }
     };
 

@@ -593,7 +593,8 @@
   },
   "B0DKJHZ88G": {
     "amazon_precio": "$699.99",
-    "precio": 560
+    "precio": 500,
+    "folio": ""
   },
   "B0H7FG83MC": {
     "amazon_precio": "$549.00",
@@ -602,7 +603,8 @@
   },
   "B0G1M2DWPP": {
     "amazon_precio": "$289.00",
-    "precio": 231
+    "precio": 220,
+    "folio": ""
   },
   "B0GMZ92DTS": {
     "amazon_precio": "$1,169.99",
@@ -1051,7 +1053,7 @@
   },
   "B0GC7JMPHT": {
     "vendido": false,
-    "precio": 430,
+    "precio": 380,
     "folio": "43",
     "qr_generado": true
   },
@@ -1507,19 +1509,23 @@
     "qr_generado": true
   },
   "B0G78N2JJ4": {
-    "precio": 300
+    "precio": 150,
+    "folio": ""
   },
   "B0G24WH2DT": {
-    "precio": 350
+    "precio": 600,
+    "folio": ""
   },
   "B0GQCJXB7Y": {
-    "precio": 630
+    "precio": 600,
+    "folio": ""
   },
   "B0GS6HK73L": {
-    "precio": 670
+    "precio": 700,
+    "folio": ""
   },
   "B0GFDKMW3Z": {
-    "precio": 450,
+    "precio": 500,
     "folio": "3",
     "qr_generado": true
   },
@@ -1529,7 +1535,8 @@
     "qr_generado": true
   },
   "B0GFDD9VVJ": {
-    "precio": 580
+    "precio": 500,
+    "folio": ""
   },
   "B0CV5M3K41": {
     "precio": 400,
@@ -1546,22 +1553,25 @@
     "qr_generado": true
   },
   "B0FDG4ZMRY": {
-    "precio": 950,
+    "precio": 900,
     "folio": "18",
     "qr_generado": true
   },
   "B0GWHL3R3H": {
-    "precio": 230
+    "precio": 190,
+    "folio": ""
   },
   "B0FXFKLTFZ": {
-    "precio": 230
+    "precio": 200,
+    "folio": ""
   },
   "B0FRSJ1P61": {
     "precio": 750,
     "vendido": true
   },
   "B0GG9S14M7": {
-    "precio": 300
+    "precio": 250,
+    "folio": ""
   },
   "B0HB9QRRYS": {
     "precio": 280,
@@ -1643,7 +1653,7 @@
     "vendido": true
   },
   "B0H33TW1JM": {
-    "precio": 191,
+    "precio": 150,
     "amazon_precio": "$239.00",
     "folio": "",
     "vendido": false
@@ -1655,7 +1665,7 @@
     "vendido": false
   },
   "B0HKG572TH": {
-    "precio": 159,
+    "precio": 150,
     "amazon_precio": "$199.00",
     "folio": "",
     "vendido": false
@@ -1709,25 +1719,25 @@
     "vendido": true
   },
   "B0H7SHNKS1": {
-    "precio": 479,
+    "precio": 400,
     "amazon_precio": "$599.00",
     "folio": "",
     "vendido": false
   },
   "B0H4CMTP64": {
-    "precio": 143,
+    "precio": 200,
     "amazon_precio": "$179.00",
     "folio": "",
     "vendido": false
   },
   "B0H4QF2V1R": {
-    "precio": 415,
+    "precio": 400,
     "amazon_precio": "$519.00",
     "folio": "",
     "vendido": false
   },
   "B0H5QYH26C": {
-    "precio": 288,
+    "precio": 280,
     "amazon_precio": "$359.99",
     "folio": "",
     "vendido": false
@@ -1775,19 +1785,19 @@
     "vendido": true
   },
   "B0HJC9FW34": {
-    "precio": 367,
+    "precio": 350,
     "amazon_precio": "$459.00",
     "folio": "",
     "vendido": false
   },
   "B0H4HTZHG5": {
-    "precio": 559,
+    "precio": 500,
     "amazon_precio": "$699.00",
     "folio": "",
     "vendido": false
   },
   "B0HDPT4H3Y": {
-    "precio": 391,
+    "precio": 350,
     "amazon_precio": "$489.00",
     "folio": "",
     "vendido": false
@@ -1802,10 +1812,10 @@
     "precio": 439,
     "amazon_precio": "$549.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0FSKH7RYL": {
-    "precio": 1466,
+    "precio": 1500,
     "amazon_precio": "$1,832.23",
     "folio": "",
     "vendido": false
@@ -1835,13 +1845,13 @@
     "vendido": true
   },
   "B0GVVX14WM": {
-    "precio": 503,
+    "precio": 550,
     "amazon_precio": "$629.10",
     "folio": "",
     "vendido": false
   },
   "B0HBVMR2RN": {
-    "precio": 113,
+    "precio": 120,
     "amazon_precio": "$141.55",
     "folio": "",
     "vendido": false
@@ -1856,7 +1866,7 @@
     "precio": 273,
     "amazon_precio": "$341.05",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0HJCH8CY4": {
     "precio": 389,
@@ -1865,19 +1875,19 @@
     "vendido": true
   },
   "B08JHCQMWQ": {
-    "precio": 1199,
+    "precio": 1000,
     "amazon_precio": "$1,499.00",
     "folio": "",
     "vendido": false
   },
   "B07Z7H1YNT": {
-    "precio": 1039,
+    "precio": 900,
     "amazon_precio": "$1,299.00",
     "folio": "",
     "vendido": false
   },
   "B0H1QL1F54": {
-    "precio": 239,
+    "precio": 240,
     "amazon_precio": "$299.00",
     "folio": "",
     "vendido": false
@@ -1889,19 +1899,19 @@
     "vendido": false
   },
   "B0H2VJNLKH": {
-    "precio": 399,
+    "precio": 400,
     "amazon_precio": "$499.00",
     "folio": "",
     "vendido": false
   },
   "B0GYQYFBTD": {
-    "precio": 1199,
+    "precio": 800,
     "amazon_precio": "$1,499.00",
     "folio": "",
     "vendido": false
   },
   "B0H7X32NBV": {
-    "precio": 216,
+    "precio": 200,
     "amazon_precio": "$269.99",
     "folio": "",
     "vendido": false
@@ -1913,7 +1923,7 @@
     "vendido": false
   },
   "B0H6LJ4MRM": {
-    "precio": 367,
+    "precio": 600,
     "amazon_precio": "$459.00",
     "folio": "",
     "vendido": false
@@ -1922,10 +1932,10 @@
     "precio": 319,
     "amazon_precio": "$398.88",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0H2XFLQBP": {
-    "precio": 159,
+    "precio": 150,
     "amazon_precio": "$199.00",
     "folio": "",
     "vendido": false
@@ -1943,13 +1953,13 @@
     "vendido": true
   },
   "B0H8PGLTGD": {
-    "precio": 640,
+    "precio": 650,
     "amazon_precio": "$799.99",
     "folio": "",
     "vendido": false
   },
   "B0H4Z19X2K": {
-    "precio": 343,
+    "precio": 340,
     "amazon_precio": "$429.00",
     "folio": "",
     "vendido": false
@@ -1961,13 +1971,13 @@
     "vendido": false
   },
   "B0H29GVM1S": {
-    "precio": 199,
+    "precio": 200,
     "amazon_precio": "$249.00",
     "folio": "",
     "vendido": false
   },
   "B0H2XTKJYD": {
-    "precio": 247,
+    "precio": 300,
     "amazon_precio": "$309.00",
     "folio": "",
     "vendido": false
@@ -1979,7 +1989,7 @@
     "vendido": true
   },
   "B0H2CZXKNP": {
-    "precio": 207,
+    "precio": 150,
     "amazon_precio": "$259.00",
     "folio": "",
     "vendido": false
@@ -1991,7 +2001,7 @@
     "vendido": true
   },
   "B0GGVSY58V": {
-    "precio": 147,
+    "precio": 150,
     "amazon_precio": "$184.01",
     "folio": "",
     "vendido": false
@@ -2000,10 +2010,10 @@
     "precio": 447,
     "amazon_precio": "$559.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0H376LQ3V": {
-    "precio": 319,
+    "precio": 300,
     "amazon_precio": "$398.99",
     "folio": "",
     "vendido": false
@@ -2012,19 +2022,19 @@
     "precio": 319,
     "amazon_precio": "$399.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0FJM5H2YL": {
     "precio": 119,
     "amazon_precio": "$149.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0HGM1DFQ5": {
     "precio": 342,
     "amazon_precio": "$428.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0GV5S1R9P": {
     "precio": 215,
@@ -2033,13 +2043,13 @@
     "vendido": true
   },
   "B0H2HXT7FF": {
-    "precio": 677,
+    "precio": 680,
     "amazon_precio": "$845.97",
     "folio": "",
     "vendido": false
   },
   "B0H1GTX2RD": {
-    "precio": 359,
+    "precio": 350,
     "amazon_precio": "$448.20",
     "folio": "",
     "vendido": false
@@ -2051,19 +2061,19 @@
     "vendido": true
   },
   "B0GTQLQQDX": {
-    "precio": 599,
+    "precio": 600,
     "amazon_precio": "$749.00",
     "folio": "",
     "vendido": false
   },
   "B0GXB41CV2": {
-    "precio": 199,
+    "precio": 200,
     "amazon_precio": "$249.00",
     "folio": "",
     "vendido": false
   },
   "B0H1B8V7MF": {
-    "precio": 103,
+    "precio": 80,
     "amazon_precio": "$129.00",
     "folio": "",
     "vendido": false
@@ -2072,22 +2082,22 @@
     "precio": 191,
     "amazon_precio": "$239.11",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0H8BVJTPL": {
-    "precio": 270,
+    "precio": 300,
     "amazon_precio": "$338.00",
     "folio": "",
     "vendido": false
   },
   "B0G3NZTZWC": {
-    "precio": 1267,
+    "precio": 1200,
     "amazon_precio": "$1,583.67",
     "folio": "",
     "vendido": false
   },
   "B0G3NWN7DR": {
-    "precio": 199,
+    "precio": 200,
     "amazon_precio": "$249.00",
     "folio": "",
     "vendido": false
@@ -2123,7 +2133,7 @@
     "vendido": true
   },
   "B0H4G5K196": {
-    "precio": 191,
+    "precio": 200,
     "amazon_precio": "$239.00",
     "folio": "",
     "vendido": false
@@ -2165,7 +2175,7 @@
     "vendido": true
   },
   "B0H141L62Q": {
-    "precio": 1039,
+    "precio": 950,
     "amazon_precio": "$1,299.00",
     "folio": "",
     "vendido": false
@@ -2183,13 +2193,13 @@
     "vendido": true
   },
   "B0HFN3JGFZ": {
-    "precio": 1280,
+    "precio": 1250,
     "amazon_precio": "$1,599.99",
     "folio": "",
     "vendido": false
   },
   "B0HFPBYG5V": {
-    "precio": 325,
+    "precio": 350,
     "amazon_precio": "$406.00",
     "folio": "",
     "vendido": false
@@ -2198,10 +2208,10 @@
     "precio": 479,
     "amazon_precio": "$598.80",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0H71DTL51": {
-    "precio": 409,
+    "precio": 500,
     "amazon_precio": "$511.80",
     "folio": "",
     "vendido": false
@@ -2210,10 +2220,10 @@
     "precio": 1135,
     "amazon_precio": "$1,419.34",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0H3FWL34W": {
-    "precio": 634,
+    "precio": 750,
     "amazon_precio": "$791.99",
     "folio": "",
     "vendido": false
@@ -2222,7 +2232,7 @@
     "precio": 479,
     "amazon_precio": "$599.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0GJ6X7WQ4": {
     "precio": 171,
@@ -2234,7 +2244,7 @@
     "precio": 1754,
     "amazon_precio": "$2,192.45",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0H8L6183X": {
     "precio": 1772,
@@ -2243,7 +2253,7 @@
     "vendido": false
   },
   "B0H2TZ8B1M": {
-    "precio": 1581,
+    "precio": 1400,
     "amazon_precio": "$1,976.69",
     "folio": "",
     "vendido": false
@@ -2252,22 +2262,22 @@
     "precio": 541,
     "amazon_precio": "$675.89",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0H1M2NS5M": {
     "precio": 640,
     "amazon_precio": "$799.99",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0F7XQ773R": {
-    "precio": 1310,
+    "precio": 1100,
     "amazon_precio": "$1638.00",
     "folio": "",
     "vendido": false
   },
   "B0HB4G4NT7": {
-    "precio": 511,
+    "precio": 500,
     "amazon_precio": "$639.20",
     "folio": "",
     "vendido": false
@@ -2276,16 +2286,16 @@
     "precio": 644,
     "amazon_precio": "$804.99",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0H8N7CDRY": {
     "precio": 248,
     "amazon_precio": "$309.99",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0HLD2YGXT": {
-    "precio": 399,
+    "precio": 350,
     "amazon_precio": "$499.00",
     "folio": "",
     "vendido": false
@@ -2294,10 +2304,10 @@
     "precio": 455,
     "amazon_precio": "$568.75",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0C9F6BWTM": {
-    "precio": 470,
+    "precio": 450,
     "amazon_precio": "$588.00",
     "folio": "",
     "vendido": false
@@ -2306,16 +2316,16 @@
     "precio": 255,
     "amazon_precio": "$319.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0DGXZQQW6": {
     "precio": 175,
     "amazon_precio": "$219.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0H9KPVYJL": {
-    "precio": 207,
+    "precio": 200,
     "amazon_precio": "$258.30",
     "folio": "",
     "vendido": false
@@ -2372,16 +2382,16 @@
     "precio": 199,
     "amazon_precio": "$249.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0GXFP7DK9": {
     "precio": 281,
     "amazon_precio": "$351.12",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0HBVT926P": {
-    "precio": 134,
+    "precio": 150,
     "amazon_precio": "$168.00",
     "folio": "",
     "vendido": false
@@ -2399,19 +2409,19 @@
     "vendido": true
   },
   "B0DPLKTMX5": {
-    "precio": 1279,
+    "precio": 450,
     "amazon_precio": "$1,599.00",
     "folio": "",
     "vendido": false
   },
   "B0H2498DN7": {
-    "precio": 319,
+    "precio": 350,
     "amazon_precio": "$399.00",
     "folio": "",
     "vendido": false
   },
   "B0H8YJD7K1": {
-    "precio": 3204,
+    "precio": 180,
     "amazon_precio": "$4,004.79",
     "folio": "",
     "vendido": false
@@ -2426,10 +2436,10 @@
     "precio": 311,
     "amazon_precio": "$389.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0GDFM454G": {
-    "precio": 639,
+    "precio": 650,
     "amazon_precio": "$799.01",
     "folio": "",
     "vendido": false
@@ -2441,19 +2451,19 @@
     "vendido": true
   },
   "B0HB292YVV": {
-    "precio": 238,
+    "precio": 200,
     "amazon_precio": "$298.00",
     "folio": "",
     "vendido": false
   },
   "B0G4CRL1TK": {
-    "precio": 560,
+    "precio": 550,
     "amazon_precio": "$699.99",
     "folio": "",
     "vendido": false
   },
   "B0H6P42RKH": {
-    "precio": 368,
+    "precio": 350,
     "amazon_precio": "$459.53",
     "folio": "",
     "vendido": false
@@ -2465,13 +2475,13 @@
     "vendido": true
   },
   "B0H4Z7KD3Y": {
-    "precio": 1141,
+    "precio": 1100,
     "amazon_precio": "$1,425.79",
     "folio": "",
     "vendido": false
   },
   "B0GSYZTKX7": {
-    "precio": 2475,
+    "precio": 2500,
     "amazon_precio": "$3,093.99",
     "folio": "",
     "vendido": false
@@ -2489,19 +2499,19 @@
     "vendido": true
   },
   "B0H1M2LTF2": {
-    "precio": 915,
+    "precio": 900,
     "amazon_precio": "$1,143.96",
     "folio": "",
     "vendido": false
   },
   "B0HHN57CTH": {
-    "precio": 135,
+    "precio": 120,
     "amazon_precio": "$169.00",
     "folio": "",
     "vendido": false
   },
   "B0G3PQHT25": {
-    "precio": 1269,
+    "precio": 1300,
     "amazon_precio": "$1,586.50",
     "folio": "",
     "vendido": false
@@ -2519,13 +2529,13 @@
     "vendido": true
   },
   "B0FPLF84M2": {
-    "precio": 576,
+    "precio": 550,
     "amazon_precio": "$719.40",
     "folio": "",
     "vendido": false
   },
   "B0HKVCLWC7": {
-    "precio": 367,
+    "precio": 350,
     "amazon_precio": "$459.00",
     "folio": "",
     "vendido": false
@@ -2534,10 +2544,10 @@
     "precio": 182,
     "amazon_precio": "$227.40",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0FX9Q5GKV": {
-    "precio": 432,
+    "precio": 450,
     "amazon_precio": "$539.99",
     "folio": "",
     "vendido": false
@@ -2546,10 +2556,10 @@
     "precio": 199,
     "amazon_precio": "$249.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0GGGXNL3S": {
-    "precio": 191,
+    "precio": 190,
     "amazon_precio": "$239.00",
     "folio": "",
     "vendido": false
@@ -2564,7 +2574,7 @@
     "precio": 439,
     "amazon_precio": "$549.00",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0HJW5QLRK": {
     "precio": "",
@@ -2582,10 +2592,10 @@
     "precio": 1368,
     "amazon_precio": "$1,709.99",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0HJTQ5RNB": {
-    "precio": 439,
+    "precio": 450,
     "amazon_precio": "$549.00",
     "folio": "",
     "vendido": false
@@ -2600,10 +2610,10 @@
     "precio": 321,
     "amazon_precio": "$401.02",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0FV2R9YHN": {
-    "precio": 640,
+    "precio": 800,
     "amazon_precio": "$799.99",
     "folio": "",
     "vendido": false
@@ -2618,7 +2628,7 @@
     "precio": 784,
     "amazon_precio": "$979.90",
     "folio": "",
-    "vendido": false
+    "vendido": true
   },
   "B0F8RJ7H2S": {
     "precio": "",
@@ -2633,7 +2643,7 @@
     "vendido": true
   },
   "B0DVFJ5V4J": {
-    "precio": 599,
+    "precio": 600,
     "amazon_precio": "$749.00",
     "folio": "",
     "vendido": false

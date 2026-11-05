@@ -86,6 +86,23 @@
             border-radius: 8px;
             width: 100px;
             font-family: inherit;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+        .price-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        .price-input.input-saved-flash {
+            border-color: #16a34a;
+            background-color: #f0fdf4;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
+        }
+        .price-cell-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: nowrap;
         }
         .action-btn {
             padding: 8px 16px;
@@ -95,9 +112,86 @@
             font-weight: 600;
             transition: var(--transition);
         }
-        .save-btn { background: var(--text-primary); color: white; margin-left: 10px; }
-        .save-btn:hover { background: var(--accent-color); }
+        .save-btn { background: var(--text-primary); color: white; margin-left: 2px; }
+        .save-btn:hover { background: var(--accent-color); color: var(--text-primary); }
         
+        .inline-save-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+        }
+        .inline-save-status.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .inline-save-status.success {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .inline-save-status.saving {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+        .inline-save-status.error {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        /* Contenedor de avisos flotantes a un costado (no bloqueantes) */
+        .admin-side-toast-container {
+            position: fixed;
+            top: 88px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .admin-side-toast {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.22);
+            border-left: 4px solid #22c55e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            min-width: 240px;
+            max-width: 340px;
+             pointer-events: none;
+            animation: slideInRightToast 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .admin-side-toast.error {
+            border-left-color: #ef4444;
+        }
+        @keyframes slideInRightToast {
+            from {
+                opacity: 0;
+                transform: translateX(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
         .toggle-btn { background: #e2e8f0; color: #475569; }
         .toggle-btn.is-sold { background: var(--danger-color); color: white; }
     </style>
@@ -148,6 +242,9 @@
         </div>
     </main>
 
-    <script src="js/admin.js?v=11"></script>
+    <!-- Contenedor de notificaciones a un costado (no requiere cerrarse) -->
+    <div id="admin-toast-container" class="admin-side-toast-container" aria-live="polite"></div>
+
+    <script src="js/admin.js?v=12"></script>
 </body>
 </html>
