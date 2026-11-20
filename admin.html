@@ -181,6 +181,37 @@
         .admin-side-toast.error {
             border-left-color: #ef4444;
         }
+        .admin-side-toast.info {
+            border-left-color: #3b82f6;
+        }
+        .btn-sync-git {
+            background: #10b981;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.92rem;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(16, 185, 129, 0.25);
+            transition: all 0.2s ease;
+        }
+        .btn-sync-git:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.35);
+        }
+        .btn-sync-git:active {
+            transform: translateY(0);
+        }
+        .btn-sync-git:disabled {
+            opacity: 0.65;
+            cursor: wait;
+            transform: none;
+        }
         @keyframes slideInRightToast {
             from {
                 opacity: 0;
@@ -204,6 +235,10 @@
                 <p>Gestiona precios y marca productos como vendidos.</p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <button id="btn-actualizar-sitio" class="action-btn btn-sync-git" title="Guardar cambios y subir a GitHub">
+                    <span id="btn-sync-icon">🚀</span>
+                    <span id="btn-sync-text">Actualizar Sitio (Git)</span>
+                </button>
                 <a href="generador.html" class="action-btn" style="background: #6366f1; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 8px;">✨ Generador de Posts</a>
                 <a href="index.html" class="action-btn" style="background: rgba(255,255,255,0.15); color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 8px;">🛍️ Ver Tienda</a>
             </div>
@@ -245,6 +280,6 @@
     <!-- Contenedor de notificaciones a un costado (no requiere cerrarse) -->
     <div id="admin-toast-container" class="admin-side-toast-container" aria-live="polite"></div>
 
-    <script src="js/admin.js?v=12"></script>
+    <script src="js/admin.js?v=13"></script>
 </body>
 </html>

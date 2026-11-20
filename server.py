@@ -1,4 +1,5 @@
 import http.server
+import socket
 import socketserver
 import json
 import os
@@ -6,12 +7,29 @@ import urllib.parse
 import requests
 
 PORT = 8000
+HOST = "0.0.0.0"
 DATA_FILE = "data/estado_productos.json"
 FB_CONFIG_FILE = "data/facebook_config.json"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
+def get_local_ip():
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            return s.getsockname()[0]
+    except Exception:
+        return "127.0.0.1"
+
+
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
+
 class CustomHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
         # Prevent caching for dynamic and code files
         if self.path.endswith('.json') or self.path.endswith('.html') or self.path.endswith('.js') or self.path.endswith('.css'):
             self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
@@ -271,9 +289,51 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({"status": "error", "message": str(e), "target_id": target_id}).encode('utf-8'))
 
+        elif parsed_path.path == '/api/actualizar_sitio' or parsed_path.path == '/api/git/sync':
+            try:
+                import subprocess
+                script_path = os.path.join(BASE_DIR, 'actualizar_sitio.sh')
+                proc = subprocess.run(
+                    ['bash', script_path],
+                    cwd=BASE_DIR,
+                    capture_output=True,
+                    text=True,
+                    timeout=180
+                )
+                output = ((proc.stdout or '') + '\n' + (proc.stderr or '')).strip()
+                if proc.returncode == 0:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        "status": "success",
+                        "message": "Sitio actualizado y subido a GitHub exitosamente.",
+                        "output": output
+                    }, ensure_ascii=False).encode('utf-8'))
+                else:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        "status": "error",
+                        "message": f"Error al ejecutar script de actualización (código {proc.returncode}).",
+                        "output": output
+                    }, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "status": "error",
+                    "message": f"Error interno en el servidor: {str(e)}"
+                }, ensure_ascii=False).encode('utf-8'))
+
         else:
             self.send_error(404, "Not Found")
 
-with socketserver.TCPServer(("", PORT), CustomHandler) as httpd:
+with ThreadedHTTPServer((HOST, PORT), CustomHandler) as httpd:
+    local_ip = get_local_ip()
     print(f"Servidor personalizado corriendo en el puerto {PORT}")
+    print(f"  • Local:     http://localhost:{PORT}")
+    print(f"  • Red Local: http://{local_ip}:{PORT}")
     httpd.serve_forever()

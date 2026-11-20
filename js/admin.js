@@ -15,8 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const showSideToast = (message, type = 'success') => {
         if (!toastContainer) return;
         const toast = document.createElement('div');
-        toast.className = `admin-side-toast ${type === 'error' ? 'error' : ''}`;
-        const icon = type === 'error' ? '⚠️' : '✅';
+        toast.className = `admin-side-toast ${type === 'error' ? 'error' : (type === 'info' ? 'info' : '')}`;
+        let icon = '✅';
+        if (type === 'error') icon = '⚠️';
+        if (type === 'info') icon = '⏳';
         toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
         toastContainer.appendChild(toast);
 
@@ -24,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.style.opacity = '0';
             toast.style.transform = 'translateX(20px)';
             setTimeout(() => toast.remove(), 250);
-        }, 2200);
+        }, 2500);
     };
 
     // Muestra el indicador de guardado justo al costado del input/botón de la fila
@@ -252,6 +254,47 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
     };
+
+    // Botón para actualizar el sitio y subir a Git
+    const btnActualizar = document.getElementById('btn-actualizar-sitio');
+    const btnSyncIcon = document.getElementById('btn-sync-icon');
+    const btnSyncText = document.getElementById('btn-sync-text');
+
+    if (btnActualizar) {
+        btnActualizar.addEventListener('click', async () => {
+            const confirmed = window.confirm('¿Deseas guardar los cambios y subir la actualización a GitHub ahora?');
+            if (!confirmed) return;
+
+            btnActualizar.disabled = true;
+            if (btnSyncIcon) btnSyncIcon.textContent = '⏳';
+            if (btnSyncText) btnSyncText.textContent = 'Subiendo a Git...';
+            showSideToast('Iniciando sincronización con GitHub...', 'info');
+
+            try {
+                const response = await fetch('/api/actualizar_sitio', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    showSideToast('¡Sitio actualizado y subido a GitHub con éxito!', 'success');
+                } else {
+                    const msg = result.message || 'Error al actualizar el sitio';
+                    showSideToast(msg, 'error');
+                    console.error('Error Git Output:', result.output);
+                }
+            } catch (err) {
+                console.error(err);
+                showSideToast('Error de conexión con el servidor local.', 'error');
+            } finally {
+                btnActualizar.disabled = false;
+                if (btnSyncIcon) btnSyncIcon.textContent = '🚀';
+                if (btnSyncText) btnSyncText.textContent = 'Actualizar Sitio (Git)';
+            }
+        });
+    }
 
     loadData();
 });
