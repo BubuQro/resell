@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Hook pre-commit — BubuStore
+# Bloquea el commit si se intenta subir algo peligroso al repositorio público:
+#   • Archivos de credenciales (token de Facebook, .env, llaves privadas)
+#   • Tokens/llaves dentro del contenido de cualquier archivo
+#   • Logs, PIDs y binarios de compilación
+#   • Archivos de más de 50 MB (GitHub rechaza > 100 MB)
+#
+# Se activa con:  git config core.hooksPath .githooks
+# (actualizar_sitio.sh lo configura automáticamente)
+# Para saltarlo en un caso excepcional y bajo tu responsabilidad: git commit --no-verify
+# ==============================================================================
+
+export LC_ALL=C
+MAX_BYTES=$((50 * 1024 * 1024))
+errors=0
+
+fail() {
+    echo "  ✖ $1" >&2
+    errors=$((errors + 1))
+}
+
+# 1) Rutas prohibidas ---------------------------------------------------------
+while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    case "$file" in
+        data/facebook_config.json|*/facebook_config.json)
+            fail "$file contiene el token de Facebook. No se debe subir." ;;
+        .env|.env.*|*/.env|*/.env.*)
+            fail "$file es un archivo de variables de entorno." ;;
+        *.pem|*.key|*.p12)
+            case "$file" in
+                */certifi/cacert.pem) ;;  # certificados públicos de librerías
+                *) fail "$file parece una llave o certificado privado." ;;
+            esac ;;
+        *.log|*.pid|.server_lan.pid)
+            fail "$file es un archivo temporal del servidor." ;;
+        GeneradorPubs/*|GeneradorPubs.zip|build/*|dist/*|*.app/*|*.dmg)
+            fail "$file es un binario de compilación (no va en el repo)." ;;
+    esac
+
+    # 2) Tamaño ---------------------------------------------------------------
+    size=$(git cat-file -s ":$file" 2>/dev/null || echo 0)
+    if [ "$size" -gt "$MAX_BYTES" ]; then
+        fail "$file pesa $((size / 1024 / 1024)) MB (máximo 50 MB)."
+    fi
+done < <(git diff --cached --name-only --diff-filter=ACMR)
+
+# 3) Secretos dentro del contenido (solo líneas agregadas, archivos de texto) --
+SECRET_REGEX='(EAA[A-Za-z0-9]{60,}|ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9_-]{32,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|"access_token"[[:space:]]*:[[:space:]]*"[^"]{20,}")'
+
+hits=$(git diff --cached -U0 --no-color --no-ext-diff --diff-filter=ACMR \
+    | awk '/^\+\+\+ b\//{f=substr($0,7)} /^\+[^+]/{print f}' \
+    | sort -u)
+
+if [ -n "$hits" ]; then
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        if git diff --cached -U0 --no-color --no-ext-diff -- "$file" \
+            | grep -E '^\+[^+]' | grep -qE "$SECRET_REGEX"; then
+            fail "$file contiene algo que parece un token o llave secreta."
+        fi
+    done <<< "$hits"
+fi
+
+if [ "$errors" -gt 0 ]; then
+    echo "" >&2
+    echo "🛑 Commit bloqueado: $errors problema(s) de seguridad." >&2
+    echo "   Quita esos archivos del commit con:  git restore --staged <archivo>" >&2
+    echo "   y agrégalos a .gitignore si corresponde." >&2
+    exit 1
+fi
+
+exit 0

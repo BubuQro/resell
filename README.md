@@ -191,3 +191,23 @@ Guarda todos los cambios locales de inventario, folios y precios en Git, crea un
    ./actualizar_sitio.sh
    ```
 
+
+---
+
+## 🔒 Seguridad del Repositorio
+
+El repositorio es público (GitHub Pages), así que hay tres protecciones:
+
+1. **`.gitignore`**: nunca se suben `data/facebook_config.json` (token de Facebook), `.env`, llaves, logs, PIDs, respaldos `.bak` ni los binarios de `GeneradorPubs/`.
+2. **Hook `.githooks/pre-commit`**: bloquea el commit si detecta tokens/llaves en el contenido, archivos prohibidos o archivos de más de 50 MB. `actualizar_sitio.sh` lo activa solo (`git config core.hooksPath .githooks`); si clonas el repo en otra Mac, ejecuta ese comando una vez.
+3. **`server.py`**: no sirve `.git/`, el token, scripts ni logs; rechaza peticiones de otros sitios web (CSRF); y la configuración/publicación de Facebook solo funciona desde la Mac que ejecuta el servidor (desde el celular se ve error 403).
+
+> Si alguna vez un token llega a subirse por error, **revócalo de inmediato** en Facebook Developers: borrarlo del repo no basta porque queda en el historial.
+
+---
+
+## 🎨 Estilos y botón "Lo quiero"
+
+- **Dos estilos:** BubuStore (predeterminado) y Clásico. El botón "Estilo…" del encabezado cambia entre ambos; la elección se recuerda en cada navegador (`js/theme.js`, colores en `css/style.css`).
+- **"Lo quiero"** copia un mensaje con el folio, el precio y el enlace del producto, y abre el grupo de Telegram para pegarlo. Si quieres que abra un chat directo con el mensaje ya escrito, pon tu usuario de Telegram (sin `@`) en `TELEGRAM_USERNAME`, al inicio de `js/app.js`.
+- **Enlaces compartibles:** `index.html?id=<ASIN>` abre directamente el detalle del producto (el botón "Compartir" del detalle los genera).

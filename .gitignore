@@ -1,7 +1,43 @@
+# ── Sistema / editores ────────────────────────────────
 .DS_Store
+._*
+.vscode/
+.idea/
+
+# ── Python ────────────────────────────────────────────
 __pycache__/
+*.pyc
+.venv/
+venv/
+
+# ── Secretos y credenciales (NUNCA subir) ─────────────
+# El token de Facebook se guarda aquí desde generador.html
+data/facebook_config.json
+.env
+.env.*
+*.pem
+*.key
+*.p12
+credentials*.json
+*secret*
+*token*.json
+
+# ── Servidor local ────────────────────────────────────
+server_lan.log
+*.log
+.server_lan.pid
+*.pid
+
+# ── Builds / binarios (PyInstaller) ───────────────────
 build/
 dist/
-*.pyc
-server_lan.log
-.server_lan.pid
+GeneradorPubs/
+GeneradorPubs.zip
+*.spec
+*.app/
+*.dmg
+
+# ── Respaldos locales ─────────────────────────────────
+*.bak
+*_bak.json
+data/productos[0-9]*.json

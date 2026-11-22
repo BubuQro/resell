@@ -180,6 +180,12 @@ def importar_lote(source_dir=DEFAULT_SOURCE_DIR, max_images_per_product=5):
     print(f"✅ Nuevos productos agregados al catálogo: {len(productos_a_agregar)}")
     print(f"✅ Total de productos ahora en catálogo: {len(existentes)}")
     print(f"✅ Nuevas imágenes copiadas a images/: {imagenes_copiadas}")
+    # Actualizar el índice de fotos que usa el catálogo
+    try:
+        import generar_indice_imagenes
+        generar_indice_imagenes.main()
+    except Exception as e:
+        print(f"⚠️  No se pudo actualizar data/imagenes.json: {e}")
     print("\nPróximos pasos recomendados:")
     print("1. Ejecuta 'python3 scraper_amazon.py' para obtener los precios de referencia de Amazon.")
     print("2. Entra a http://localhost:8000/admin.html para asignarles Folio y tu Precio de venta.")

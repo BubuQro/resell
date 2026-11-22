@@ -1,256 +1,466 @@
+// ==========================================================================
+// BubuStore — catálogo público
+// ==========================================================================
+
+// --- Configuración de contacto -------------------------------------------
+// Grupo de Telegram donde se coordinan las compras.
+const TELEGRAM_GROUP_URL = 'https://t.me/+FsYQ0AKAyPFmZDIx';
+// Si tienes un usuario de Telegram para mensajes directos (sin @), escríbelo aquí:
+// "Lo quiero" abrirá el chat con el mensaje ya escrito. Vacío = copia el mensaje
+// y abre el grupo (los enlaces de invitación a grupos no aceptan texto).
+const TELEGRAM_USERNAME = '';
+
+// Escapa texto antes de insertarlo como HTML (los títulos de Amazon traen comillas,
+// p. ej. 15.6", que rompían los atributos alt/title y permitían inyectar HTML).
+const escapeHtml = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+// Búsqueda sin distinguir acentos ni mayúsculas ("bateria" encuentra "Batería")
+const normalizeText = (value) => String(value ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase();
+
+const formatMoney = (n) => `$${Math.round(n).toLocaleString('es-MX')}`;
+const parseMoney = (value) => {
+    const n = Number(String(value ?? '').replace(/[^0-9.]/g, ''));
+    return Number.isFinite(n) && n > 0 ? n : null;
+};
+const parseFolio = (value) => {
+    const n = parseInt(String(value ?? '').replace(/\D/g, ''), 10);
+    return Number.isNaN(n) ? null : n;
+};
+
+// ---------- Fotos ----------
+// Índice de fotos existentes por producto (data/imagenes.json, lo genera
+// generar_indice_imagenes.py). Si no está, se prueban nombres _01…_NN.
+let imageIndex = null;
+const CARD_MAX_PHOTOS = 6;   // la tarjeta muestra unas cuantas; el detalle, todas
+const imageNumbers = (id, fallbackCount, max = Infinity) => {
+    const list = imageIndex && Array.isArray(imageIndex[id])
+        ? imageIndex[id]
+        : Array.from({ length: fallbackCount }, (_, i) => String(i + 1).padStart(2, '0'));
+    return list.slice(0, max);
+};
+
+// Ajusta la galería según cuántas fotos quedan: sin fotos se oculta el área,
+// con una sola se ocultan las flechas.
+const syncGallery = (gallery) => {
+    if (!gallery) return;
+    const n = gallery.querySelectorAll('img').length;
+    const wrapper = gallery.closest('.card-gallery-wrapper, .modal-gallery-container');
+    if (wrapper) {
+        wrapper.classList.toggle('no-images', n === 0);
+        wrapper.classList.toggle('single-image', n === 1);
+    }
+    gallery.dispatchEvent(new CustomEvent('gallerychange', { detail: { count: n } }));
+};
+// Si una foto no carga (no existe o está dañada) se elimina, sin dejar huecos ni íconos rotos
+window.dropImage = (img) => {
+    const gallery = img.parentElement;
+    img.remove();
+    syncGallery(gallery);
+};
+
+// Copiar texto. navigator.clipboard solo existe en HTTPS o localhost; en la red
+// local (http://192.168…) se usa el método antiguo como último recurso.
+const legacyCopy = (text) => {
+    const field = Object.assign(document.createElement('textarea'), { value: text });
+    field.setAttribute('readonly', '');
+    field.style.cssText = 'position:fixed;inset-block-start:0;opacity:0';
+    document.body.append(field);
+    field.select();
+    try { return document.execCommand('copy'); } finally { field.remove(); }
+};
+const safeLegacyCopy = (text) => { try { return legacyCopy(text); } catch { return false; } };
+// Devuelve una promesa, pero la copia se INICIA de forma síncrona dentro del clic:
+// así sigue funcionando aunque justo después se abra Telegram en otra pestaña.
+const copyText = (text) => {
+    if (!window.isSecureContext || !navigator.clipboard) {
+        return Promise.resolve(safeLegacyCopy(text)); // red local por http://
+    }
+    return navigator.clipboard.writeText(text).then(() => true, () => safeLegacyCopy(text));
+};
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Los enlaces a Admin / Generador solo tienen sentido en la red local, no en la tienda pública
+    const host = window.location.hostname;
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '' ||
+        /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host) || host.endsWith('.local');
+    if (!isLocalHost) {
+        document.querySelectorAll('.admin-only').forEach(el => el.remove());
+    }
+
     const gridContainer = document.getElementById('products-grid');
     const searchInput = document.getElementById('search-input');
     const folioRangeInput = document.getElementById('folio-range-input');
     const sortSelect = document.getElementById('sort-select');
-    
+    const resultsCount = document.getElementById('results-count');
+    const priceChips = [...document.querySelectorAll('.chip[data-price]')];
+
     let stateData = {};
     let allAvailableProducts = [];
+    let priceRange = 'all';
+
+    // Datos derivados de cada producto (precio, ahorro, folio)
+    const info = (product) => {
+        const st = stateData[product.id] || {};
+        const price = parseMoney(st.precio);
+        const amazon = parseMoney(st.amazon_precio);
+        const savings = price && amazon && amazon - price >= 1 ? amazon - price : 0;
+        return {
+            price,
+            amazon,
+            savings,
+            savingsPct: savings ? Math.round((savings / amazon) * 100) : 0,
+            folio: st.folio ? String(st.folio) : '',
+            folioNum: parseFolio(st.folio),
+        };
+    };
+
+    const productUrl = (id) => {
+        const url = new URL(window.location.href);
+        url.search = '';
+        url.hash = '';
+        url.searchParams.set('id', id);
+        return url.toString();
+    };
+
+    // Título corto para mensajes: hasta ~60 caracteres, cortado en un espacio
+    const shortTitle = (titulo, max = 60) => {
+        const t = String(titulo || '').replace(/\s+/g, ' ').trim();
+        if (t.length <= max) return t;
+        const cut = t.slice(0, max);
+        const atSpace = cut.lastIndexOf(' ') > 30 ? cut.slice(0, cut.lastIndexOf(' ')) : cut;
+        return `${atSpace.replace(/[\s,;:.\-|]+$/, '')}…`;
+    };
+
+    // ---------- Mensajes junto a los botones (región en vivo) ----------
+    const statusTimers = new WeakMap();
+    let lastMessage = '';
+    const showStatus = (el, message, isError = false) => {
+        if (!el) return;
+        clearTimeout(statusTimers.get(el));
+        // VoiceOver omite un mensaje idéntico al anterior: un espacio duro lo hace distinto
+        let text = message;
+        if (text === lastMessage) text += ' ';
+        lastMessage = text;
+        el.textContent = '';
+        el.classList.toggle('error', isError);
+        el.classList.add('visible');
+        // setTimeout (no requestAnimationFrame): si se abrió Telegram la pestaña queda en
+        // segundo plano y rAF no corre; así el mensaje ya está al volver.
+        setTimeout(() => { el.textContent = text; }, 50);
+        statusTimers.set(el, setTimeout(() => {
+            el.classList.remove('visible');
+            el.textContent = '';
+        }, 6000));
+    };
+
+    // ---------- "Lo quiero" ----------
+    const wantProduct = (product, statusEl) => {
+        // Solo la descripción (nombre) del producto y su enlace
+        const message = `${String(product.titulo || '').replace(/\s+/g, ' ').trim()}\n${productUrl(product.id)}`;
+
+        if (TELEGRAM_USERNAME) {
+            window.open(`https://t.me/${encodeURIComponent(TELEGRAM_USERNAME)}?text=${encodeURIComponent(message)}`, '_blank', 'noopener');
+            showStatus(statusEl, 'Abrimos Telegram con tu mensaje listo para enviar.');
+            return;
+        }
+
+        // Copiar primero (dentro del clic del usuario) y luego abrir el grupo
+        const copied = copyText(message);
+        window.open(TELEGRAM_GROUP_URL, '_blank', 'noopener');
+        copied.then((ok) => {
+            showStatus(statusEl, ok
+                ? 'Mensaje copiado. Pégalo en el grupo de Telegram para apartarlo.'
+                : 'No se pudo copiar el mensaje. Toca Compartir en el detalle del producto para copiar el enlace.', !ok);
+        });
+    };
+
+    // ---------- Compartir ----------
+    const shareProduct = async (product, statusEl) => {
+        const url = productUrl(product.id);
+        const { price } = info(product);
+        const data = { title: 'BubuStore', text: `${shortTitle(product.titulo)}${price ? ` por ${formatMoney(price)}` : ''}`, url };
+        if (navigator.share) {
+            try { await navigator.share(data); return; } catch (e) {
+                if (e && e.name === 'AbortError') return; // la persona canceló
+            }
+        }
+        const ok = await copyText(url);
+        showStatus(statusEl, ok ? 'Enlace copiado.' : 'No se pudo copiar el enlace. Cópialo desde la barra de direcciones.', !ok);
+    };
+
+    // ---------- Filtros y orden ----------
+    const inPriceRange = (price) => {
+        if (priceRange === 'all' || !price) return true;
+        const [min, max] = priceRange.split('-').map(v => (v === '' ? null : Number(v)));
+        if (min !== null && price < min) return false;
+        if (max !== null && price > max) return false;
+        return true;
+    };
+
+    const parseFolioRange = (query) => {
+        if (!query) return null;
+        if (query.includes('-')) {
+            const [a, b] = query.split('-');
+            return { min: parseFolio(a) ?? -Infinity, max: parseFolio(b) ?? Infinity };
+        }
+        const n = parseFolio(query);
+        return n === null ? null : { min: n, max: n };
+    };
 
     const applyFiltersAndSort = () => {
         let filtered = [...allAvailableProducts];
-        
-        // Búsqueda
-        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+        const query = searchInput ? normalizeText(searchInput.value.trim()) : '';
         if (query) {
-            filtered = filtered.filter(p => 
-                p.titulo.toLowerCase().includes(query) || 
-                p.descripcion.toLowerCase().includes(query)
-            );
-        }
-        
-        // Rango de folios
-        const folioQuery = folioRangeInput ? folioRangeInput.value.trim() : '';
-        if (folioQuery) {
-            let minFolio = -Infinity;
-            let maxFolio = Infinity;
-            
-            if (folioQuery.includes('-')) {
-                const parts = folioQuery.split('-');
-                if (parts[0].trim() !== '') minFolio = parseInt(parts[0].replace(/\D/g, ''), 10);
-                if (parts[1].trim() !== '') maxFolio = parseInt(parts[1].replace(/\D/g, ''), 10);
-            } else {
-                const singleNum = parseInt(folioQuery.replace(/\D/g, ''), 10);
-                if (!isNaN(singleNum)) {
-                    minFolio = singleNum;
-                    maxFolio = singleNum;
-                }
-            }
-            
+            const queryFolio = /^#?\d+$/.test(query) ? parseFolio(query) : null;
             filtered = filtered.filter(p => {
-                const productFolioStr = stateData[p.id] ? stateData[p.id].folio : '';
-                if (!productFolioStr) return false;
-                
-                const productFolioNum = parseInt(String(productFolioStr).replace(/\D/g, ''), 10);
-                if (isNaN(productFolioNum)) return false;
-                
-                return productFolioNum >= minFolio && productFolioNum <= maxFolio;
+                const { folioNum } = info(p);
+                return normalizeText(p.titulo).includes(query) ||
+                    normalizeText(p.descripcion).includes(query) ||
+                    normalizeText(p.id).includes(query) ||
+                    (queryFolio !== null && folioNum === queryFolio);
             });
         }
-        
-        // Ordenamiento
+
+        const range = parseFolioRange(folioRangeInput ? folioRangeInput.value.trim() : '');
+        if (range) {
+            filtered = filtered.filter(p => {
+                const { folioNum } = info(p);
+                return folioNum !== null && folioNum >= range.min && folioNum <= range.max;
+            });
+        }
+
+        filtered = filtered.filter(p => inPriceRange(info(p).price));
+
         const sortVal = sortSelect ? sortSelect.value : 'default';
-        if (sortVal !== 'default') {
-            filtered.sort((a, b) => {
-                if (sortVal === 'name-asc') return a.titulo.localeCompare(b.titulo);
-                if (sortVal === 'name-desc') return b.titulo.localeCompare(a.titulo);
-                
-                const priceA = (stateData[a.id] && stateData[a.id].precio !== undefined && stateData[a.id].precio !== null && stateData[a.id].precio !== '')
-                    ? Number(stateData[a.id].precio)
-                    : Infinity;
-                const priceB = (stateData[b.id] && stateData[b.id].precio !== undefined && stateData[b.id].precio !== null && stateData[b.id].precio !== '')
-                    ? Number(stateData[b.id].precio)
-                    : Infinity;
-                
-                if (sortVal === 'price-asc') return priceA - priceB;
-                if (sortVal === 'price-desc') {
-                    if (priceA === Infinity && priceB === Infinity) return 0;
-                    if (priceA === Infinity) return 1;
-                    if (priceB === Infinity) return -1;
-                    return priceB - priceA;
-                }
-                
-                let folioA = Infinity;
-                if (stateData[a.id] && stateData[a.id].folio) {
-                    const parsed = parseInt(String(stateData[a.id].folio).replace(/\D/g, ''), 10);
-                    if (!isNaN(parsed)) folioA = parsed;
-                }
-                
-                let folioB = Infinity;
-                if (stateData[b.id] && stateData[b.id].folio) {
-                    const parsed = parseInt(String(stateData[b.id].folio).replace(/\D/g, ''), 10);
-                    if (!isNaN(parsed)) folioB = parsed;
-                }
-                
-                if (sortVal === 'folio-asc') {
-                    if (folioA === Infinity && folioB === Infinity) return 0;
-                    return folioA - folioB;
-                }
-                if (sortVal === 'folio-desc') {
-                    if (folioA === Infinity && folioB === Infinity) return 0;
-                    if (folioA === Infinity) return 1;
-                    if (folioB === Infinity) return -1;
-                    return folioB - folioA;
-                }
-                
-                return 0;
-            });
+        const last = (v, dir) => (v === null || v === undefined ? Infinity : v * dir);
+        const sorters = {
+            'name-asc': (a, b) => String(a.titulo).localeCompare(String(b.titulo), 'es'),
+            'price-asc': (a, b) => last(info(a).price, 1) - last(info(b).price, 1),
+            'price-desc': (a, b) => last(info(a).price, -1) - last(info(b).price, -1),
+            'savings-desc': (a, b) => info(b).savings - info(a).savings,
+            'folio-asc': (a, b) => last(info(a).folioNum, 1) - last(info(b).folioNum, 1),
+            'folio-desc': (a, b) => last(info(a).folioNum, -1) - last(info(b).folioNum, -1),
+        };
+        if (sorters[sortVal]) filtered.sort(sorters[sortVal]);
+
+        // Si se buscó un número, el producto con ese folio exacto va primero
+        if (query && /^#?\d+$/.test(query)) {
+            const wanted = parseFolio(query);
+            filtered.sort((a, b) => (info(b).folioNum === wanted) - (info(a).folioNum === wanted));
         }
-        
+
         renderProducts(filtered);
+    };
+
+    const hasActiveFilters = () =>
+        (searchInput && searchInput.value.trim()) ||
+        (folioRangeInput && folioRangeInput.value.trim()) ||
+        priceRange !== 'all';
+
+    const clearFilters = () => {
+        if (searchInput) searchInput.value = '';
+        if (folioRangeInput) folioRangeInput.value = '';
+        setPriceRange('all');
+        applyFiltersAndSort();
+        if (searchInput) searchInput.focus();
+    };
+
+    const setPriceRange = (value) => {
+        priceRange = value;
+        priceChips.forEach(chip => chip.setAttribute('aria-pressed', String(chip.dataset.price === value)));
     };
 
     if (searchInput) searchInput.addEventListener('input', applyFiltersAndSort);
     if (folioRangeInput) folioRangeInput.addEventListener('input', applyFiltersAndSort);
     if (sortSelect) sortSelect.addEventListener('change', applyFiltersAndSort);
+    priceChips.forEach(chip => chip.addEventListener('click', () => {
+        setPriceRange(chip.dataset.price);
+        applyFiltersAndSort();
+    }));
 
-    // Función para renderizar los productos
+    // ---------- Tarjetas ----------
+    const priceBlock = ({ price, amazon, savings, savingsPct }) => {
+        if (!price) return '';
+        const ref = amazon && savings ? `<span class="ref-price">Amazon <s>${formatMoney(amazon)}</s></span>` : '';
+        const save = savings ? `<span class="savings">Ahorras ${formatMoney(savings)} (${savingsPct}%)</span>` : '';
+        return `<span class="product-price">${formatMoney(price)}</span>${ref}${save}`;
+    };
+
     const renderProducts = (productsToRender) => {
         gridContainer.innerHTML = '';
+        const n = productsToRender ? productsToRender.length : 0;
 
-        if (!productsToRender || productsToRender.length === 0) {
-            gridContainer.innerHTML = '<p>No hay productos que coincidan con la búsqueda.</p>';
+        if (resultsCount) {
+            resultsCount.textContent = hasActiveFilters()
+                ? `${n} de ${allAvailableProducts.length} productos`
+                : `${n} producto${n === 1 ? '' : 's'} disponible${n === 1 ? '' : 's'}`;
+        }
+
+        if (n === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty-state';
+            empty.innerHTML = '<p>No hay productos con esos filtros.</p>';
+            if (hasActiveFilters()) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn-secondary';
+                btn.textContent = 'Quitar filtros';
+                btn.addEventListener('click', clearFilters);
+                empty.append(btn);
+            }
+            gridContainer.append(empty);
             return;
         }
 
-        productsToRender.forEach(product => {
-            const { id, titulo, descripcion, url } = product;
-            
-            let galleryHtml = '<div class="image-gallery">';
-            for (let i = 1; i <= 5; i++) {
-                const num = i.toString().padStart(2, '0');
-                const imageUrl = `images/${id}_${num}.jpg`;
-                if (i === 1) {
-                    galleryHtml += `<img src="${imageUrl}" alt="${titulo}" class="product-image" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x250?text=Sin+Imagen';">`;
-                } else {
-                    galleryHtml += `<img src="${imageUrl}" alt="${titulo}" class="product-image" onerror="this.remove()">`;
-                }
-            }
-            galleryHtml += '</div>';
-            // Controles para tarjeta
-            galleryHtml += `
-                <button class="carousel-btn prev" onclick="scrollGallery(event, this, -1)">&#10094;</button>
-                <button class="carousel-btn next" onclick="scrollGallery(event, this, 1)">&#10095;</button>
-            `;
+        const fragment = document.createDocumentFragment();
 
-            // Obtener precio si existe y es válido
-            let price = '';
-            let priceHtml = '';
-            const rawPrecio = stateData[id] && stateData[id].precio;
-            if (rawPrecio !== undefined && rawPrecio !== null && rawPrecio !== '') {
-                const precioNum = Number(rawPrecio);
-                if (!isNaN(precioNum) && precioNum > 0) {
-                    const roundedPrice = Math.round(precioNum);
-                    price = `$${roundedPrice.toLocaleString('en-US')}`;
-                    
-                    let refAmazonHtml = '';
-                    if (stateData[id].amazon_precio) {
-                        refAmazonHtml = `<span class="product-amazon-ref" title="Precio de referencia en Amazon">Amazon: <span class="ref-strike">${stateData[id].amazon_precio}</span></span>`;
-                    }
+        productsToRender.forEach((product, index) => {
+            const { id, titulo } = product;
+            const data = info(product);
+            const safeId = encodeURIComponent(id);
+            const safeTitle = escapeHtml(titulo);
+            // Las primeras tarjetas cargan de inmediato; el resto al acercarse
+            const loading = index < 4 ? 'eager' : 'lazy';
+            // La primera foto del primer producto es la imagen principal (LCP)
+            const priorityAttr = index === 0 ? ' fetchpriority="high"' : '';
 
-                    priceHtml = `
-                        <div class="product-price-row">
-                            <div class="product-price-container">
-                                <span class="product-price-symbol">$</span>
-                                <span class="product-price">${roundedPrice.toLocaleString('en-US')}</span>
-                            </div>
-                            ${refAmazonHtml}
-                        </div>
-                    `;
-                }
-            }
+            const gallery = imageNumbers(id, 5, CARD_MAX_PHOTOS).map((num, i) => {
+                const src = `images/${safeId}_${num}.jpg`;
+                return i === 0
+                    ? `<img src="${src}" alt="${safeTitle}" class="product-image" width="400" height="400" loading="${loading}"${priorityAttr} decoding="async" onerror="dropImage(this)">`
+                    : `<img src="${src}" alt="" class="product-image" width="400" height="400" loading="lazy" decoding="async" onerror="dropImage(this)">`;
+            }).join('');
 
-            let folioHtml = '';
-            if (stateData[id] && stateData[id].folio) {
-                folioHtml = `<div class="product-folio-badge">${stateData[id].folio}</div>`;
-            }
+            const folioHtml = data.folio
+                ? `<span class="product-folio-badge"><span class="folio-label">Folio</span> ${escapeHtml(data.folio)}</span>`
+                : '';
 
             const card = document.createElement('article');
             card.className = 'product-card';
-
             card.innerHTML = `
                 <div class="card-gallery-wrapper">
                     ${folioHtml}
-                    ${galleryHtml}
+                    <div class="image-gallery">${gallery}</div>
+                    <button type="button" class="carousel-btn prev" aria-label="Foto anterior de ${safeTitle}" data-dir="-1">&#10094;</button>
+                    <button type="button" class="carousel-btn next" aria-label="Foto siguiente de ${safeTitle}" data-dir="1">&#10095;</button>
                 </div>
-                <div class="product-content">
-                    <h2 class="product-title">${titulo}</h2>
-                    ${priceHtml}
-                    <p class="product-desc">${descripcion}</p>
-                    <button class="product-link">Ver Detalles</button>
-                </div>
+                <h3 class="product-title"><button type="button" class="card-link">${safeTitle}</button></h3>
+                <p class="product-price-row">${priceBlock(data)}</p>
+                <footer class="card-actions">
+                    <button type="button" class="btn-want">Lo quiero<span class="sr-only">: ${safeTitle}</span></button>
+                    <p class="action-status" role="status"></p>
+                </footer>
             `;
 
-            card.addEventListener('click', (e) => {
-                if(e.target.classList.contains('carousel-btn')) return;
-                openModal(product, price);
-            });
+            const statusEl = card.querySelector('.action-status');
+            card.querySelector('.card-link').addEventListener('click', () => openModal(product));
+            // Tocar la foto también abre el detalle (la galería queda encima para poder deslizar)
+            card.querySelector('.image-gallery').addEventListener('click', () => openModal(product));
+            card.querySelector('.btn-want').addEventListener('click', () => wantProduct(product, statusEl));
+            card.querySelectorAll('.carousel-btn').forEach(btn => btn.addEventListener('click', () => {
+                const g = card.querySelector('.image-gallery');
+                g.scrollBy({ left: Number(btn.dataset.dir) * g.clientWidth, behavior: 'smooth' });
+            }));
+            syncGallery(card.querySelector('.image-gallery'));
 
-            gridContainer.appendChild(card);
+            fragment.appendChild(card);
         });
+
+        gridContainer.appendChild(fragment);
     };
 
-    // Lógica del modal
+    // ---------- Modal de detalle ----------
     const modal = document.getElementById('product-modal');
-    const closeModalBtn = document.getElementById('close-modal');
     const modalGallery = document.getElementById('modal-gallery');
+    const modalFolio = document.getElementById('modal-folio');
     const modalTitle = document.getElementById('modal-title');
+    const modalPrice = document.getElementById('modal-price');
     const modalDesc = document.getElementById('modal-desc');
     const modalLink = document.getElementById('modal-link');
-    const modalIndicators = document.getElementById('modal-indicators');
+    const modalCounter = document.getElementById('modal-counter');
+    const modalWant = document.getElementById('modal-want');
+    const modalShare = document.getElementById('modal-share');
+    const modalStatus = document.getElementById('modal-status');
+    let modalProduct = null;
 
-    const openModal = (product, price) => {
-        const { id, titulo, descripcion, url } = product;
-        
-        let modalPriceHtml = '';
-        if (price) {
-            let refText = '';
-            if (stateData[id] && stateData[id].amazon_precio) {
-                refText = ` <small class="modal-ref-price">(Amazon: <s>${stateData[id].amazon_precio}</s> - 20% OFF)</small>`;
-            }
-            modalPriceHtml = `<span class="modal-price">${price}${refText}</span>`;
+    // Las descripciones de Amazon separan viñetas con " | ": se muestran como lista
+    const renderDescription = (text) => {
+        const items = String(text || '').split(/\s+\|\s+/).map(s => s.trim()).filter(Boolean);
+        if (items.length > 1) {
+            modalDesc.innerHTML = `<ul>${items.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`;
+        } else {
+            modalDesc.textContent = items[0] || 'Sin descripción.';
         }
-        
-        modalTitle.innerHTML = `${titulo} ${modalPriceHtml}`;
-        modalDesc.textContent = descripcion;
-        modalLink.href = url;
-        modalLink.className = 'product-link amazon-link';
-
-        let galleryHtml = '';
-        let indicatorsHtml = '';
-        for (let i = 1; i <= 10; i++) {
-            const num = i.toString().padStart(2, '0');
-            const imageUrl = `images/${id}_${num}.jpg`;
-            if (i === 1) {
-                galleryHtml += `<img src="${imageUrl}" alt="${titulo}" onload="updateIndicators()" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x400?text=Sin+Imagen'; updateIndicators()">`;
-                indicatorsHtml += `<span class="dot active"></span>`;
-            } else {
-                galleryHtml += `<img src="${imageUrl}" alt="${titulo}" onload="updateIndicators()" onerror="this.remove(); updateIndicators()">`;
-                indicatorsHtml += `<span class="dot"></span>`;
-            }
-        }
-        modalGallery.innerHTML = galleryHtml;
-        modalIndicators.innerHTML = indicatorsHtml;
-
-        modal.showModal();
-        modalGallery.scrollLeft = 0;
     };
 
-    closeModalBtn.addEventListener('click', () => modal.close());
+    const openModal = (product) => {
+        modalProduct = product;
+        const { id, titulo, url } = product;
+        const data = info(product);
 
-    modal.addEventListener('click', (e) => {
-        const dialogDimensions = modal.getBoundingClientRect();
-        if (
-            e.clientX < dialogDimensions.left ||
-            e.clientX > dialogDimensions.right ||
-            e.clientY < dialogDimensions.top ||
-            e.clientY > dialogDimensions.bottom
-        ) {
-            modal.close();
+        modalFolio.textContent = data.folio ? `Folio ${data.folio}` : '';
+        modalFolio.hidden = !data.folio;
+        modalTitle.textContent = titulo;
+        modalPrice.innerHTML = priceBlock(data);
+        modalPrice.hidden = !data.price;
+        renderDescription(product.descripcion);
+        modalStatus.textContent = '';
+        modalStatus.classList.remove('visible');
+
+        // Solo enlaces http(s) (evita "javascript:" u otros esquemas en los datos)
+        modalLink.href = /^https?:\/\//i.test(url || '') ? url : `https://www.amazon.com.mx/dp/${encodeURIComponent(id)}`;
+
+        const safeId = encodeURIComponent(id);
+        const safeTitle = escapeHtml(titulo);
+        // Todas las fotos del producto. Las que no se ven al abrir cargan con prioridad baja.
+        modalGallery.innerHTML = imageNumbers(id, 10).map((num, i) => {
+            const src = `images/${safeId}_${num}.jpg`;
+            return i === 0
+                ? `<img src="${src}" alt="${safeTitle}" decoding="async" onerror="dropImage(this)">`
+                : `<img src="${src}" alt="${safeTitle} (foto ${i + 1})" loading="lazy" fetchpriority="low" decoding="async" onerror="dropImage(this)">`;
+        }).join('');
+        syncGallery(modalGallery);
+
+        if (!modal.open) modal.showModal();
+        modalGallery.scrollLeft = 0;
+        modal.querySelector('.modal-body').scrollTop = 0;
+    };
+
+    modalWant.addEventListener('click', () => modalProduct && wantProduct(modalProduct, modalStatus));
+    modalShare.addEventListener('click', () => modalProduct && shareProduct(modalProduct, modalStatus));
+    document.getElementById('close-modal').addEventListener('click', () => modal.close());
+
+    // Cerrar tocando fuera: closedby="any" lo hace de forma nativa.
+    // Respaldo para navegadores sin soporte (Safari / iPhone).
+    if (!('closedBy' in HTMLDialogElement.prototype)) {
+        modal.addEventListener('click', (e) => {
+            if (e.target !== modal) return; // en el fondo, el target es el propio <dialog>
+            const rect = modal.getBoundingClientRect();
+            const isDialogContent =
+                rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+                rect.left <= e.clientX && e.clientX <= rect.left + rect.width;
+            if (!isDialogContent) modal.close();
+        });
+    }
+
+    // Quitar ?id= de la dirección al cerrar, para que recargar no reabra el producto
+    modal.addEventListener('close', () => {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('id')) {
+            url.searchParams.delete('id');
+            history.replaceState(null, '', url);
         }
     });
 
-    // Control de scroll del modal
     document.getElementById('modal-prev').addEventListener('click', () => {
         modalGallery.scrollBy({ left: -modalGallery.clientWidth, behavior: 'smooth' });
     });
@@ -258,45 +468,36 @@ document.addEventListener('DOMContentLoaded', () => {
         modalGallery.scrollBy({ left: modalGallery.clientWidth, behavior: 'smooth' });
     });
 
-    modalGallery.addEventListener('scroll', () => {
-        const index = Math.round(modalGallery.scrollLeft / modalGallery.clientWidth);
-        const dots = document.querySelectorAll('#modal-indicators .dot');
-        dots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === index);
-        });
-    });
-
-    window.updateIndicators = () => {
-        const imagesCount = modalGallery.querySelectorAll('img').length;
-        const dots = document.querySelectorAll('#modal-indicators .dot');
-        dots.forEach((dot, i) => {
-            dot.style.display = i < imagesCount ? 'inline-block' : 'none';
-        });
+    // Contador "3 / 12" en lugar de puntos (con muchas fotos los puntos no caben)
+    const updateCounter = () => {
+        const total = modalGallery.querySelectorAll('img').length;
+        const index = Math.min(total, Math.round(modalGallery.scrollLeft / (modalGallery.clientWidth || 1)) + 1);
+        modalCounter.textContent = total > 1 ? `${index} / ${total}` : '';
     };
+    modalGallery.addEventListener('scroll', updateCounter, { passive: true });
+    modalGallery.addEventListener('gallerychange', updateCounter);
 
-    window.scrollGallery = (e, btn, dir) => {
-        e.stopPropagation();
-        const gallery = btn.parentElement.querySelector('.image-gallery');
-        gallery.scrollBy({ left: dir * gallery.clientWidth, behavior: 'smooth' });
-    };
-
+    // ---------- Carga de datos ----------
     const loadProducts = async () => {
         try {
-            // Load state
             try {
                 const stateRes = await fetch('data/estado_productos.json');
-                if(stateRes.ok) {
-                    stateData = await stateRes.json();
-                }
-            } catch(e) {
-                console.log("No state file found, proceeding with defaults");
+                if (stateRes.ok) stateData = await stateRes.json();
+            } catch (e) {
+                console.log('Sin archivo de estado; se usan valores por defecto.');
             }
 
-            // Load products
+            try {
+                const imgRes = await fetch('data/imagenes.json');
+                if (imgRes.ok) imageIndex = await imgRes.json();
+            } catch (e) {
+                console.log('Sin índice de imágenes; se buscan las fotos por nombre.');
+            }
+
             const response = await fetch('data/productos.json');
             if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
             const data = await response.json();
-            
+
             let productsArray = [];
             if (Array.isArray(data)) {
                 productsArray = data;
@@ -304,47 +505,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 productsArray = data.productos;
             } else {
                 for (const key in data) {
-                    if (Array.isArray(data[key])) {
-                        productsArray = data[key];
-                        break;
-                    }
+                    if (Array.isArray(data[key])) { productsArray = data[key]; break; }
                 }
             }
-            
-            // Guardar globalmente filtrando los vendidos y asegurando que tengan precio válido
+
+            // Solo productos no vendidos y con precio válido
             allAvailableProducts = productsArray.filter(p => {
-                const itemState = stateData[p.id];
-                const isSold = itemState && itemState.vendido === true;
-                const priceVal = itemState ? itemState.precio : null;
-                const hasValidPrice = priceVal !== undefined && priceVal !== null && String(priceVal).trim() !== '' && Number(priceVal) > 0;
-                return !isSold && hasValidPrice;
+                const st = stateData[p.id];
+                return !(st && st.vendido === true) && parseMoney(st && st.precio) !== null;
             });
-            
+
             applyFiltersAndSort();
 
-            // Auto-open modal if ?id= is present in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const productIdToOpen = urlParams.get('id');
+            // Abrir el detalle si la dirección trae ?id= (enlaces compartidos)
+            const productIdToOpen = new URLSearchParams(window.location.search).get('id');
             if (productIdToOpen) {
-                const productToOpen = allAvailableProducts.find(p => p.id === productIdToOpen);
-                if (productToOpen) {
-                    let price = '';
-                    if (stateData[productToOpen.id]) {
-                        const rawPrecio = stateData[productToOpen.id].precio;
-                        if (rawPrecio !== undefined && rawPrecio !== null && rawPrecio !== '') {
-                            const precioNum = Number(rawPrecio);
-                            if (!isNaN(precioNum) && precioNum > 0) {
-                                price = `$${Math.round(precioNum).toLocaleString('en-US')}`;
-                            }
-                        }
-                    }
-                    openModal(productToOpen, price);
-                }
+                const product = allAvailableProducts.find(p => p.id === productIdToOpen);
+                if (product) openModal(product);
             }
-            
         } catch (error) {
             console.error('Error al cargar los productos:', error);
-            gridContainer.innerHTML = `<p style="color: #ef4444;">Error al cargar los productos.</p>`;
+            gridContainer.innerHTML = '<div class="empty-state error"><p>No se pudieron cargar los productos. Revisa tu conexión y recarga la página.</p></div>';
         }
     };
 

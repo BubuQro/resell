@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BubuStore Studio - Generador de Publicaciones</title>
+    <meta name="robots" content="noindex, nofollow">
 
     <!-- Google Fonts: Outfit & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1260,7 +1261,7 @@
             <!-- Product Summary Card -->
             <div class="product-summary-card">
                 <img id="summary-img" class="summary-thumb" src="" alt="Producto"
-                    onerror="this.src='https://via.placeholder.com/150?text=BubuStore';">
+                    onerror="this.style.display='none';" onload="this.style.display='';">
                 <div class="summary-details">
                     <h3 id="summary-title" class="summary-title">Cargando producto...</h3>
                     <div class="summary-tags">
@@ -1375,7 +1376,7 @@
                 <!-- Attached Product Image in Post -->
                 <div class="fb-media-container">
                     <img id="fb-post-image" class="fb-media-img" src="" alt="Foto de la publicación"
-                        onerror="this.src='https://via.placeholder.com/600x400?text=Foto+del+Producto';">
+                        onerror="this.style.display='none';" onload="this.style.display='';">
                     <div class="fb-media-badge">
                         <span>📸 Foto <span id="current-photo-num-badge">01</span> seleccionada</span>
                     </div>

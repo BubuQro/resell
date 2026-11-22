@@ -1485,7 +1485,8 @@
   "B0D1CR2JZV": {
     "precio": 300,
     "folio": "55",
-    "qr_generado": true
+    "qr_generado": true,
+    "vendido": true
   },
   "B0G8HJTJJD": {
     "precio": 920,
