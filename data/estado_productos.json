@@ -3645,14 +3645,14 @@
     "qr_generado": true
   },
   "B0H5C1YFZF": {
-    "precio": "",
+    "precio": 100,
     "amazon_precio": "",
     "folio": "304",
     "vendido": false,
     "qr_generado": true
   },
   "B0FSRVY9L6": {
-    "precio": "",
+    "precio": 140,
     "amazon_precio": "",
     "folio": "305",
     "vendido": false,
@@ -3708,7 +3708,7 @@
     "qr_generado": true
   },
   "B0H9RNW1RJ": {
-    "precio": "",
+    "precio": 400,
     "amazon_precio": "",
     "folio": "313",
     "vendido": false,
@@ -3722,7 +3722,7 @@
     "qr_generado": true
   },
   "B0HKS1Y516": {
-    "precio": "",
+    "precio": 150,
     "amazon_precio": "",
     "folio": "315",
     "vendido": false,
@@ -3764,7 +3764,7 @@
     "qr_generado": true
   },
   "B0HJ41HYTC": {
-    "precio": "",
+    "precio": 600,
     "amazon_precio": "",
     "folio": "321",
     "vendido": false,
@@ -3799,7 +3799,7 @@
     "qr_generado": true
   },
   "B0HGBC8H7T": {
-    "precio": "",
+    "precio": 2500,
     "amazon_precio": "",
     "folio": "326",
     "vendido": false,
@@ -3820,7 +3820,7 @@
     "qr_generado": true
   },
   "B0CN7DB1R1": {
-    "precio": "",
+    "precio": 900,
     "amazon_precio": "",
     "folio": "329",
     "vendido": false,
@@ -3841,7 +3841,7 @@
     "qr_generado": true
   },
   "B0D2GY18ML": {
-    "precio": "",
+    "precio": 700,
     "amazon_precio": "",
     "folio": "332",
     "vendido": false,
@@ -3876,21 +3876,21 @@
     "qr_generado": true
   },
   "B0HKN6RN67": {
-    "precio": "",
+    "precio": 950,
     "amazon_precio": "",
     "folio": "337",
     "vendido": false,
     "qr_generado": true
   },
   "B0F66NH2ZX": {
-    "precio": "",
+    "precio": 1500,
     "amazon_precio": "",
     "folio": "338",
     "vendido": false,
     "qr_generado": true
   },
   "B0F9NK4M7Q": {
-    "precio": "",
+    "precio": 2300,
     "amazon_precio": "",
     "folio": "339",
     "vendido": false,
@@ -3900,7 +3900,7 @@
     "precio": "",
     "amazon_precio": "",
     "folio": "340",
-    "vendido": false,
+    "vendido": true,
     "qr_generado": true
   },
   "B0GZWVMLX6": {
@@ -3911,14 +3911,14 @@
     "qr_generado": true
   },
   "B0GV28PS2Z": {
-    "precio": "",
+    "precio": 500,
     "amazon_precio": "",
     "folio": "342",
     "vendido": false,
     "qr_generado": true
   },
   "B0GTV79MKG": {
-    "precio": "",
+    "precio": 350,
     "amazon_precio": "",
     "folio": "343",
     "vendido": false,
