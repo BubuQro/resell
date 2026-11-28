@@ -41,3 +41,8 @@ GeneradorPubs.zip
 *.bak
 *_bak.json
 data/productos[0-9]*.json
+
+# ── Pipeline Vine (estado local) ──────────────────────
+logs/
+.pipeline.lock
+data/ultima_corrida.json

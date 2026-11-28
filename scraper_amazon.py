@@ -5,14 +5,16 @@ Permite consultar los precios de referencia vigentes de Amazon México
 y guardarlos automáticamente en data/estado_productos.json.
 """
 
-import json
 import time
 import random
 import os
 import sys
 import urllib.request
 from urllib.error import HTTPError, URLError
-import re
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib import catalogo  # noqa: E402
+from lib.precios import extract_price, is_captcha, calcular_precio_venta, cargar_config  # noqa: E402
 
 # Archivos
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -35,71 +37,14 @@ HEADERS = {
     'Connection': 'keep-alive'
 }
 
-def load_json(filepath):
-    if not os.path.exists(filepath):
-        return {}
-    with open(filepath, 'r', encoding='utf-8') as f:
-        try:
-            return json.load(f)
-        except json.JSONDecodeError:
-            return {}
-
-def save_json(filepath, data):
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-def extract_price(html):
-    """
-    Busca patrones de precio en el HTML de Amazon México.
-    Prioriza el precio real de compra sobre precios tachados o de referencia.
-    """
-    # 1. PRIORIDAD: precio en contenedores oficiales de Amazon (evita capturar precios tachados)
-    # Buscar apexPriceToPay / priceToPay / corePriceDisplay primero
-    priority_patterns = [
-        r'apexPriceToPay[^>]*>.*?<span class="a-offscreen">([^<]+)</span>',
-        r'priceToPay[^>]*>.*?<span class="a-offscreen">([^<]+)</span>',
-        r'corePriceDisplay[^>]*>.*?<span class="a-offscreen">([^<]+)</span>',
-        r'corePrice[^>]*>.*?<span class="a-offscreen">([^<]+)</span>',
-    ]
-    for pattern in priority_patterns:
-        match = re.search(pattern, html, re.DOTALL)
-        if match:
-            p = match.group(1).strip()
-            if '$' in p:
-                return p
-
-    # 2. Precio dividido en entero y fracción (dentro de contenedores de precio real):
-    match_whole = re.search(r'class="a-price(?:-symbol)?[^"]*">.*?class="a-price-whole">([^<]+)<', html, re.DOTALL)
-    if not match_whole:
-        match_whole = re.search(r'class="a-price-whole">([^<]+)<', html)
-    match_fraction = re.search(r'class="a-price-fraction">([^<]+)<', html)
-    if match_whole:
-        whole = match_whole.group(1).replace('.', '').replace(',', '').strip()
-        fraction = match_fraction.group(1).strip() if match_fraction else "00"
-        if whole.isdigit():
-            return f"${whole}.{fraction}"
-
-    # 3. Fallback: primer a-offscreen con símbolo de peso
-    # (puede capturar precio tachado — solo se usa si los métodos anteriores fallan)
-    for match in re.finditer(r'<span class="a-offscreen">([^<]+)</span>', html):
-        p = match.group(1).strip()
-        if '$' in p:
-            return p
-
-    return None
-
-def is_captcha(html):
-    return ('api-services-support@amazon.com' in html or 
-            'Enter the characters you see below' in html or 
-            'Ingresa los caracteres que ves a continuación' in html)
-
 def main():
     print("=" * 60)
     print("🔍 BubuStore - Consultor de Precios de Amazon México")
     print("=" * 60)
 
-    productos_data = load_json(PRODUCTOS_FILE)
-    estado_data = load_json(ESTADO_FILE)
+    productos_data = catalogo.load_json(PRODUCTOS_FILE, {})
+    estado_data = catalogo.load_json(ESTADO_FILE, {})
+    config = cargar_config()
 
     products_list = []
     if isinstance(productos_data, list):
@@ -137,9 +82,10 @@ def main():
         pendientes = [p for p in products_list if p.get("id") == target_id]
         print(f"🎯 Modo producto único: {target_id}")
     elif solo_nuevos:
-        # Los últimos 178 productos (los agregados en la última importación)
-        ultimos_178 = products_list[-178:] if len(products_list) >= 178 else products_list
-        pendientes = [p for p in ultimos_178 if forzar or not estado_data.get(p.get("id"), {}).get("amazon_precio")]
+        # Productos dados de alta en la última corrida de pipeline_vine.py
+        ultimos = set(catalogo.load_json(catalogo.CORRIDA_FILE, {}).get("importados", []))
+        lote = [p for p in products_list if p.get("id") in ultimos] if ultimos else products_list
+        pendientes = [p for p in lote if forzar or not estado_data.get(p.get("id"), {}).get("amazon_precio")]
         print(f"✨ Modo productos nuevos: {len(pendientes)} artículos pendientes de precio.")
     else:
         # Por defecto: todos los que falten de precio, ordenados empezando por los más recientes
@@ -183,20 +129,13 @@ def main():
                 
                 if precio:
                     print(f"  💰 Precio Amazon: {precio}")
-                    if prod_id not in estado_data:
-                        estado_data[prod_id] = {}
-                    estado_data[prod_id]["amazon_precio"] = precio
-                    
-                    # Calcular precio de venta con 20% de descuento (redondeado sin centavos)
-                    try:
-                        clean_amz = re.sub(r'[^\d.]', '', str(precio).replace(',', ''))
-                        nuevo_precio_venta = int(round(float(clean_amz) * 0.8))
-                        estado_data[prod_id]["precio"] = nuevo_precio_venta
-                        print(f"  🏷️  Precio de venta (-20%): ${nuevo_precio_venta}")
-                    except Exception:
-                        pass
-
-                    save_json(ESTADO_FILE, estado_data)
+                    cambios = {"amazon_precio": precio}
+                    venta = calcular_precio_venta(precio, config)
+                    if venta and (forzar or not str(estado_data.get(prod_id, {}).get("precio", "")).strip()):
+                        cambios["precio"] = venta
+                        print(f"  🏷️  Precio de venta (20–30 % menos): ${venta}")
+                    # Relee y mezcla: no pisa cambios hechos desde admin.html
+                    estado_data = catalogo.actualizar_estado({prod_id: cambios})
                     exitos += 1
                 else:
                     print("  ⚪ No se detectó precio (puede ser producto agotado o sin stock).")

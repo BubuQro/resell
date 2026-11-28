@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Ejecuta pipeline_vine.py todos los días a las 7:00 (con la sesión de macOS iniciada).
+  Instalar:
+    cp launchd/com.bubustore.pipeline.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.bubustore.pipeline.plist
+  Probar ahora:   launchctl kickstart gui/$(id -u)/com.bubustore.pipeline
+  Desinstalar:    launchctl bootout gui/$(id -u)/com.bubustore.pipeline
+  Para publicar automáticamente agrega <string>--publicar</string> a ProgramArguments.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.bubustore.pipeline</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/4x/miniforge3/bin/python3</string>
+    <string>/Users/4x/Documents/Programacion/amazon-resell/pipeline_vine.py</string>
+    <string>--corte-temprano</string>
+    <string>3</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/4x/Documents/Programacion/amazon-resell</string>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>7</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/Users/4x/Documents/Programacion/amazon-resell/logs/launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/4x/Documents/Programacion/amazon-resell/logs/launchd.log</string>
+  <key>RunAtLoad</key>
+  <false/>
+</dict>
+</plist>

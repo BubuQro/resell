@@ -1,0 +1,10 @@
+{
+  "tramos": [
+    {"hasta": 300, "descuento": 0.20},
+    {"hasta": 1000, "descuento": 0.25},
+    {"hasta": null, "descuento": 0.30}
+  ],
+  "descuento_min": 0.20,
+  "descuento_max": 0.30,
+  "terminar_en_9": true
+}

@@ -16,13 +16,20 @@ amazon-resell/
 ├── Iniciar_Servidor_LAN.command    # Acceso directo ejecutable con doble clic desde Finder en macOS
 ├── generar_catalogo_pdf.py         # Generador del catálogo completo en PDF para compartir offline
 ├── generar_qr.py                   # Generador de etiquetas térmicas QR (57x45 mm) para artículos sin QR
-├── scraper_amazon.py               # Consultor de precios en Amazon México y cálculo automático (-20%)
+├── pipeline_vine.py                # ⭐ Pipeline automático: Vine → imágenes → catálogo → precios (un solo comando)
+├── Actualizar_Productos.command    # Doble clic para ejecutar pipeline_vine.py
+├── lib/                            # Módulos compartidos (catalogo.py, precios.py, vine.py)
+├── launchd/                        # Tarea programada diaria de macOS (opcional)
+├── tests/                          # Pruebas: python3 -m unittest discover -s tests
+├── scraper_amazon.py               # Consultor de precios en Amazon México y cálculo automático (20–30 % menos)
 ├── importar_lote.py                # Importador masivo de nuevos lotes de productos e imágenes
 ├── bubu_facebook_post.py           # App de escritorio (Tkinter) para crear posts e imágenes para Facebook
 ├── actualizar_sitio.sh             # Script Git para desplegar cambios al sitio público (GitHub Pages)
 ├── data/
 │   ├── productos.json              # Base de datos de productos (ASIN, título, descripción, URL)
 │   ├── estado_productos.json       # Estado dinámico (precio venta, precio Amazon, folio, vendido, QR)
+│   ├── config_precios.json         # Regla de descuento por tramos (20–30 %)
+│   ├── ultima_corrida.json         # Resumen del último lote importado (local, no se publica)
 │   └── qr/                         # Imágenes PNG individuales de los códigos QR por folio
 └── images/                         # Fotografías locales de los productos (<ASIN>_01.jpg ... _05.jpg)
 ```
@@ -101,14 +108,14 @@ python3 generar_qr.py 16_11_26_QR_Productos
 ## 💰 4. Consultar Precios en Amazon México
 
 ### `scraper_amazon.py`
-Consulta en Amazon México el precio vigente de los artículos del catálogo, guarda el precio de referencia en `amazon_precio` y calcula automáticamente el precio de venta sugerido con **20% de descuento** (`precio`) dentro de `data/estado_productos.json`.
+Consulta en Amazon México el precio vigente de los artículos del catálogo, guarda el precio de referencia en `amazon_precio` y calcula automáticamente el precio de venta sugerido con **20–30 % de descuento** según `data/config_precios.json` (`precio`; no pisa un precio ya capturado salvo con `--forzar`) dentro de `data/estado_productos.json`.
 
 #### Cómo ejecutarlo:
 ```bash
 # Consultar todos los productos que aún no tienen precio de Amazon registrado
 python3 scraper_amazon.py
 
-# Consultar únicamente los productos del último lote importado
+# Consultar únicamente los productos del último lote importado (data/ultima_corrida.json)
 python3 scraper_amazon.py --nuevos
 
 # Consultar un único producto por su código ASIN
@@ -163,13 +170,49 @@ Guarda todos los cambios locales de inventario, folios y precios en Git, crea un
 
 ---
 
+## ⭐ 0. Actualización automática desde Amazon Vine (`pipeline_vine.py`)
+
+Sustituye los pasos manuales *extensión → Escanear → Imágenes → `importar_lote.py` → `scraper_amazon.py` → actualizar `excluir.json`*.
+
+```bash
+python3 pipeline_vine.py                  # corrida completa (pendientes + completadas)
+python3 pipeline_vine.py --dry-run        # solo muestra los ASINs nuevos, no escribe nada
+python3 pipeline_vine.py --max 10         # máximo 10 productos nuevos
+python3 pipeline_vine.py --corte-temprano 3   # deja de paginar tras 3 páginas sin nuevos
+python3 pipeline_vine.py --solo-precios   # solo reintenta los productos sin precio
+python3 pipeline_vine.py --qr --publicar  # además folios + PDF QR y sube a GitHub Pages
+```
+O doble clic en **`Actualizar_Productos.command`**.
+
+**Qué hace:**
+1. Excluye automáticamente los ASINs que ya están en `data/productos.json` (y los de `amazon-vine-scraper/content/excluir.json`).
+2. Recorre Vine con Chrome (Playwright) y, por cada producto nuevo, en una sola visita obtiene título, descripción, imágenes HD y precio de Amazon.
+3. Descarga hasta 5 fotos a `images/<ASIN>_NN.jpg`, da de alta el producto y le asigna el precio de venta. Cada producto se guarda al momento: si se interrumpe (Ctrl+C), la siguiente corrida continúa donde quedó.
+4. Reintenta en cada corrida los productos que quedaron sin precio y regenera `data/imagenes.json`.
+5. Avisa con una notificación de macOS al terminar (o si Amazon pide Captcha / inicio de sesión).
+
+**Sesión de Amazon:** siempre se usa el perfil de Chrome **"Luz Yadira"** (constante `PERFIL_CHROME` en `lib/vine.py`, o `--perfil "Otro"`). En cada corrida se descifran sus cookies de Amazon (clave del llavero "Chrome Safe Storage"; la primera vez macOS pide permiso: elige **Permitir siempre**) y se inyectan en un Chrome propio (`~/.bubustore/chrome-pipeline`), sin tocar tu Chrome abierto. Si la sesión expira, vuelve a iniciar sesión en Amazon dentro de tu perfil "Luz Yadira" normal.
+
+**Regla de precio (`data/config_precios.json`):** menos de $300 → 20 %, $300–$999 → 25 %, $1,000 o más → 30 %, ajustado a un precio terminado en 9 sin salir del rango 20–30 %. Los productos con precio de Amazon menor a $50 se marcan "por revisar". Los productos sin precio no aparecen en el catálogo público hasta que tengan uno.
+
+**Ejecución diaria automática (opcional):**
+```bash
+cp launchd/com.bubustore.pipeline.plist ~/Library/LaunchAgents/
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.bubustore.pipeline.plist
+```
+Corre todos los días a las 7:00 sin publicar; revisa en `admin.html` y publica con `./actualizar_sitio.sh` (o agrega `--publicar` al `.plist`). Logs en `logs/`.
+
+---
+
 ## 🔄 Flujo de Trabajo Recomendado
+
+> **Nuevo:** los pasos 1 y 2 los hace solo `python3 pipeline_vine.py` (ver sección 0). El flujo manual sigue disponible.
 
 1. **Importar lote nuevo:**
    ```bash
    python3 importar_lote.py "/Volumes/Apple/Descargas/nuevo-lote"
    ```
-2. **Obtener precios automáticos de Amazon (-20%):**
+2. **Obtener precios automáticos de Amazon (20–30 % menos):**
    ```bash
    python3 scraper_amazon.py --nuevos
    ```

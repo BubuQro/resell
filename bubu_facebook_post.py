@@ -9,7 +9,6 @@ import threading
 import tempfile
 import os
 import subprocess
-import textwrap
 
 PRODUCTOS_URL = 'https://bubuqro.github.io/resell/data/productos.json'
 ESTADO_URL    = 'https://bubuqro.github.io/resell/data/estado_productos.json'
@@ -633,7 +632,6 @@ class BubuPostApp:
             self.root.after(200, self._generate_random)
 
     def _generate_random(self):
-        global _available_items
         if not _available_items:
             messagebox.showinfo("Catálogo", "No hay productos disponibles actualmente.")
             return
@@ -641,7 +639,6 @@ class BubuPostApp:
         self._process_product(item[0], item[1])
 
     def _on_search_select(self):
-        global _available_items
         q = self.search_entry.get().strip().lower()
         if not q:
             self._generate_random()
@@ -716,15 +713,12 @@ class BubuPostApp:
         copy_text_to_clipboard(self.root, text, self.status_var)
 
     def _copy_card_image(self):
-        global _composite_img
         copy_image_to_clipboard(_composite_img, self.status_var)
 
     def _copy_raw_photo(self):
-        global _current_raw_photo
         copy_image_to_clipboard(_current_raw_photo, self.status_var)
 
     def _save_card_image(self):
-        global _composite_img
         pid = self.current_post_info.get("product_id", "post_bubustore") if self.current_post_info else "post_bubustore"
         save_image_to_file(_composite_img, f"bubustore_{pid}", self.status_var)
 

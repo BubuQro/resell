@@ -10,10 +10,12 @@ import sys
 import json
 import shutil
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib import catalogo  # noqa: E402
+
 # Rutas del proyecto
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PRODUCTOS_FILE = os.path.join(BASE_DIR, "data", "productos.json")
-ESTADO_FILE = os.path.join(BASE_DIR, "data", "estado_productos.json")
 IMAGES_DIR = os.path.join(BASE_DIR, "images")
 
 DEFAULT_SOURCE_DIR = "/Volumes/Apple/Descargas/22-10-2026"
@@ -84,15 +86,6 @@ def importar_lote(source_dir=DEFAULT_SOURCE_DIR, max_images_per_product=5):
     existentes_ids = {p.get("id") for p in existentes if p.get("id")}
     print(f"Productos actuales en catálogo: {len(existentes_ids)}")
 
-    # Cargar estado actual
-    estado_data = {}
-    if os.path.exists(ESTADO_FILE):
-        with open(ESTADO_FILE, 'r', encoding='utf-8') as f:
-            try:
-                estado_data = json.load(f)
-            except Exception:
-                estado_data = {}
-
     # Filtrar nuevos productos
     productos_a_agregar = []
     for item in nuevos_datos:
@@ -119,12 +112,6 @@ def importar_lote(source_dir=DEFAULT_SOURCE_DIR, max_images_per_product=5):
 
     print(f"✨ Se detectaron {len(productos_a_agregar)} productos NUEVOS para importar.")
 
-    # Respaldar archivos actuales
-    if os.path.exists(PRODUCTOS_FILE):
-        shutil.copyfile(PRODUCTOS_FILE, PRODUCTOS_FILE + ".bak")
-    if os.path.exists(ESTADO_FILE):
-        shutil.copyfile(ESTADO_FILE, ESTADO_FILE + ".bak")
-
     # Copiar imágenes
     archivos_origen = set(os.listdir(source_dir))
     imagenes_copiadas = 0
@@ -133,15 +120,6 @@ def importar_lote(source_dir=DEFAULT_SOURCE_DIR, max_images_per_product=5):
     for idx, prod in enumerate(productos_a_agregar, 1):
         pid = prod["id"]
         
-        # Inicializar estado si no existe
-        if pid not in estado_data:
-            estado_data[pid] = {
-                "precio": "",
-                "amazon_precio": "",
-                "folio": "",
-                "vendido": False
-            }
-
         # Buscar imágenes para este producto
         # Formatos: {pid}_01.jpg, {pid}_02.jpg ...
         num = 1
@@ -165,14 +143,9 @@ def importar_lote(source_dir=DEFAULT_SOURCE_DIR, max_images_per_product=5):
                 break
             num += 1
 
-    # Guardar productos.json actualizado
+    # Guardar productos.json y estado (escritura atómica con respaldo .bak)
+    catalogo.agregar_productos(productos_a_agregar, backup=True)
     existentes.extend(productos_a_agregar)
-    with open(PRODUCTOS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(existentes, f, ensure_ascii=False, indent=2)
-
-    # Guardar estado_productos.json actualizado
-    with open(ESTADO_FILE, 'w', encoding='utf-8') as f:
-        json.dump(estado_data, f, ensure_ascii=False, indent=2)
 
     print("\n" + "=" * 60)
     print("🎉 ¡IMPORTACIÓN COMPLETADA EXITOSAMENTE!")
